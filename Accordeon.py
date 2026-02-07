@@ -35,14 +35,19 @@ class MonApp(ctk.CTk):
         self.geometry("500x600")
         self.title("Accordéon Dynamique")
 
+        self.grid_columnconfigure(0, weight=1) 
+        self.grid_rowconfigure(1, weight=1) # Permet au scroll_frame de prendre la hauteur restante
+
         # Zone de contrôle en haut
         ctrl_frame = ctk.CTkFrame(self)
-        ctrl_frame.pack(fill="x", padx=10, pady=10)
+        ctrl_frame.grid(column=0, row=0, sticky="ew")
+        ctrl_frame.grid_columnconfigure(0, weight=1)
+
         ctk.CTkButton(ctrl_frame, text="+ Ajouter une Zone", command=self.ajouter_zone).pack(pady=5)
 
         # Container pour les zones
         self.scroll_frame = ctk.CTkScrollableFrame(self)
-        self.scroll_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        self.scroll_frame.grid(column=0, row=1, sticky="nsew")
         self.scroll_frame.grid_columnconfigure(0, weight=1)
 
         # Initialisation du Manager
