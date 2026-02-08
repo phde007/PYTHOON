@@ -2,16 +2,19 @@ import customtkinter as ctk
 from grid_manager import GridAccordionManager
 
 class ZoneConfinee:
-    def __init__(self, parent, titre, on_delete_callback, on_duplicate_callback):
+    def __init__(self, parent, titre, on_delete_callback, on_duplicate_callback,couleur_header="transparent", couleur_panneau="transparent"):
         self.is_visible = False
         self.titre = titre
+
+        # On crée un dictionnaire pour référencer nos widgets de saisie
+        self.widgets_data = {}
         
         # 1. Conteneur principal
         self.contenant_global = ctk.CTkFrame(parent)
         self.contenant_global.grid_columnconfigure(0, weight=1)
 
         # 2. Header
-        header_frame = ctk.CTkFrame(self.contenant_global, fg_color="transparent")
+        header_frame = ctk.CTkFrame(self.contenant_global, fg_color=couleur_header)
         header_frame.grid(row=0, column=0, sticky="ew")
         header_frame.grid_columnconfigure(0, weight=1)
 
@@ -28,10 +31,23 @@ class ZoneConfinee:
         btn_del.grid(row=0, column=2, padx=(2, 5), pady=5)
 
         # 3. Panneau affichable (Contenu)
-        self.panneau_affichable = ctk.CTkFrame(self.contenant_global, fg_color="gray20")
-        # On définit le champ de saisie ICI, dès l'initialisation
-        self.input_champ = ctk.CTkEntry(self.panneau_affichable, placeholder_text="Entrez une valeur...")
-        self.input_champ.pack(pady=10, padx=10)
+        self.panneau_affichable = ctk.CTkFrame(self.contenant_global, fg_color=couleur_panneau)
+        self.panneau_affichable.grid(row=1, column=0, sticky="nsew", padx=10, pady=5) 
+        self.panneau_affichable.grid_columnconfigure(0, weight=1) 
+       
+  
+
+  
+   # --- EXEMPLE DE CONTENU ---
+        # Au lieu de juste créer les widgets, on les range dans notre dico
+        self.widgets_data["nom_client"] = ctk.CTkEntry(self.panneau_affichable, placeholder_text="Nom...")
+        self.widgets_data["nom_client"].pack(pady=5, padx=10)
+
+        self.widgets_data["age"] = ctk.CTkEntry(self.panneau_affichable, placeholder_text="Âge...")
+        self.widgets_data["age"].pack(pady=5, padx=10)
+        
+        self.widgets_data["actif"] = ctk.CTkCheckBox(self.panneau_affichable, text="Zone Active")
+        self.widgets_data["actif"].pack(pady=5, padx=10)
 
     def toggle(self):
         """ Gère l'affichage/masquage du panneau """
@@ -42,17 +58,28 @@ class ZoneConfinee:
         self.is_visible = not self.is_visible
 
     def get_data(self):
-        """ Récupère les données actuelles de la zone """
-        return {
-            "titre": self.titre,  # <--- On ajoute le titre ici
-            "valeur": self.input_champ.get()
-        }
+        """ Scanne automatiquement le dictionnaire widgets_data """
+        donnees = {"titre": self.titre}
+        for cle, widget in self.widgets_data.items():
+            # On adapte la récupération selon le type de widget
+            if isinstance(widget, ctk.CTkEntry):
+                donnees[cle] = widget.get()
+            elif isinstance(widget, ctk.CTkCheckBox):
+                donnees[cle] = widget.get() # Renvoie 0 ou 1
+            # Vous pouvez ajouter CTkSwitch, CTkOptionMenu, etc.
+        return donnees
 
     def set_data(self, data):
-        """ Remplit la zone avec des données """
-        if data and "valeur" in data:
-            self.input_champ.delete(0, 'end')
-            self.input_champ.insert(0, data["valeur"])
+        """ Réinjecte automatiquement les données dans les widgets correspondants """
+        for cle, valeur in data.items():
+            if cle in self.widgets_data:
+                widget = self.widgets_data[cle]
+                if isinstance(widget, ctk.CTkEntry):
+                    widget.delete(0, 'end')
+                    widget.insert(0, valeur)
+                elif isinstance(widget, ctk.CTkCheckBox):
+                    if valeur: widget.select()
+                    else: widget.deselect()
 
 class MonApp(ctk.CTk):
     def __init__(self):
@@ -83,7 +110,8 @@ class MonApp(ctk.CTk):
             titre = f"Zone {len(self.manager.structures) + 1}"
         
         # On crée l'objet (ce qui exécute le __init__ et crée le CTkEntry)
-        nouvelle_zone = ZoneConfinee(self.scroll_frame, titre, self.supprimer_zone, self.dupliquer_zone)
+        nouvelle_zone = ZoneConfinee(self.scroll_frame, titre, self.supprimer_zone, self.dupliquer_zone,
+                                     couleur_header="lightgreen", couleur_panneau="lightgray")
         
         # On injecte les données si elles existent
         if data_initiale:
@@ -93,22 +121,23 @@ class MonApp(ctk.CTk):
         self.manager.reorganize_grid()
 
     def dupliquer_zone(self, zone_a_copier):
+        """
         # On récupère les données de la zone source
         donnees_sources = zone_a_copier.get_data()
+        print(f"DEBUG - Données récupérées : {donnees_sources}") # <--- Ajoutez ceci
         # On crée la nouvelle zone avec ces données
         self.ajouter_zone(titre=f"{zone_a_copier.titre} (Copie)", data_initiale=donnees_sources)
+        """
 
         # 1. On récupère le dictionnaire de la zone source
-        donnees = zone_a_copier.get_data()
+        donnees_sources = zone_a_copier.get_data()
+        print(f"DEBUG - Données récupérées : {donnees_sources}") # <---Pour vérifier que les données sont correctes
         
-        # 2. On récupère le titre (soit dans le dico, soit directement de l'objet)
-        # La méthode .get("titre") évite le crash si la clé est absente
-        titre_source = donnees.get("titre", zone_a_copier.titre)
-        
-        nouveau_titre = f"{titre_source} (Copie)"
+        # 2. On prépare le nouveau titre en ajoutant "(Copie)" à la fin
+        nouveau_titre = f"{donnees_sources['titre']} (Copie)"
         
         # 3. On crée la nouvelle zone en passant les données
-        self.ajouter_zone(titre=nouveau_titre, data_initiale=donnees)
+        self.ajouter_zone(titre=nouveau_titre, data_initiale=donnees_sources)
 
 
     def supprimer_zone(self, zone):
