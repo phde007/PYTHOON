@@ -13,6 +13,8 @@ class ZoneConfinee:
         self.age_var = ctk.StringVar(value="")
         # À chaque modification ("write"), on appelle la fonction de mise à jour du total
         self.age_var.trace_add("write", lambda *args: self.update_total_callback())
+        # Enregistrement de la validation (indispensable pour CTkEntry)
+        vcmd = (parent.register(self._valider_chiffres), '%P')
 
         # 2. Conteneur principal
         self.contenant_global = ctk.CTkFrame(parent)
@@ -44,12 +46,18 @@ class ZoneConfinee:
         self.widgets_data["age"] = ctk.CTkEntry(
             self.panneau_affichable, 
             placeholder_text="Âge...", 
-            textvariable=self.age_var
+            textvariable=self.age_var,
+            validate="key", 
+            validatecommand=vcmd
         )
         self.widgets_data["age"].pack(pady=5, padx=10)
         
         self.widgets_data["actif"] = ctk.CTkCheckBox(self.panneau_affichable, text="Zone Active")
         self.widgets_data["actif"].pack(pady=5, padx=10)
+
+    def _valider_chiffres(self, contenu_futur):
+        """Méthode interne pour bloquer les caractères non-numériques."""
+        return contenu_futur.isdigit() or contenu_futur == ""
 
     @property
     def age(self):
