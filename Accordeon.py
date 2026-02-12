@@ -40,11 +40,20 @@ class ZoneConfinee:
 
         # 4. Panneau affichable
         self.panneau_affichable = ctk.CTkFrame(self.contenant_global, fg_color=couleur_panneau)
+        self.panneau_affichable.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
         self.panneau_affichable.grid_columnconfigure(0, weight=1) 
        
-        # Champ Nom
-        self.widgets_data["nom_client"] = ctk.CTkEntry(self.panneau_affichable, placeholder_text="Nom...")
-        self.widgets_data["nom_client"].pack(pady=5, padx=10)
+        # Variable pour le nom avec surveillance de sa modification afin de rafraîchir les indicateurs liés (ex: liste des actifs)
+        self.nom_var = ctk.StringVar(value="")
+        self.nom_var.trace_add("write", lambda *args: self.update_total_callback())
+
+        # Modification du widget Nom
+        self.widgets_data["nom_client"] = ctk.CTkEntry(
+            self.panneau_affichable, 
+            placeholder_text="Nom...",
+            textvariable=self.nom_var # On lie la variable
+        )
+        self.widgets_data["nom_client"].pack(pady=5, padx=10)   
 
         # Champ Âge (lié à age_var)
         self.widgets_data["age"] = ctk.CTkEntry(
@@ -88,6 +97,11 @@ class ZoneConfinee:
         """Retourne True si la case 'actif' est cochée.
           On lit la BooleanVar, c'est beaucoup plus robuste que de se fier à l'état du widget lui-même."""
         return self.actif_var.get()
+    
+    @property
+    def nom_client(self):
+        """Récupère le texte saisi dans le champ nom."""
+        return self.widgets_data["nom_client"].get()
 
     def toggle(self):
         if self.is_visible:
@@ -140,6 +154,17 @@ class MonApp(ctk.CTk):
         self.label_total = ctk.CTkLabel(ctrl_frame, text="Total des âges : 0", font=("Arial", 14, "bold"))
         self.label_total.pack(side="left", padx=10)
 
+        #   Nouveau label pour la liste des noms des zones actives
+        self.label_noms_actifs = ctk.CTkLabel(
+            self, 
+            text="Aucune zone active", 
+            font=("Arial", 11, "italic"),
+            wraplength=450 # Permet au texte de passer à la ligne s'il y a trop de noms
+        )
+        self.label_noms_actifs.grid(column=0, row=2, pady=5, sticky="ew")
+
+        
+
         self.scroll_frame = ctk.CTkScrollableFrame(self)
         self.scroll_frame.grid(column=0, row=1, sticky="nsew")
         self.scroll_frame.grid_columnconfigure(0, weight=1)
@@ -170,6 +195,31 @@ class MonApp(ctk.CTk):
             self.label_statut.configure(text="● 1 actif au moins", text_color="green")
         else:
             self.label_statut.configure(text="○ Aucun actif", text_color="gray")
+
+    
+
+    
+    #permet d'afficher la liste des noms des zones actives (cases cochées) dans un label dédié
+
+    @property
+    def liste_noms_actifs(self):
+        """Retourne une chaîne de caractères des noms des zones actives."""
+        # On crée une liste des noms uniquement pour les zones où est_active est True
+        actifs = [zone.nom_client for zone in self.manager.structures if zone.est_active]
+        
+        if not actifs:
+            return "Aucune zone active"
+        
+        # On joint les noms avec une virgule (ex: "X, Y, Z")
+        return ", ".join(actifs)
+
+    def rafraichir_affichage(self):
+        """Mise à jour globale de tous les indicateurs."""
+        self.label_total.configure(text=f"Total des âges : {self.total_ages}")
+        
+        # Mise à jour du nouveau label de liste
+        texte_liste = f"Les zones confinées {self.liste_noms_actifs} sont actives"
+        self.label_noms_actifs.configure(text=texte_liste)
 
 
 
