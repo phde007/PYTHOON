@@ -1,5 +1,7 @@
 import customtkinter as ctk
 from grid_manager import GridAccordionManager
+import Brique as brq
+from utilitaires import next_free_row
 
 class ZoneConfinee:
     def __init__(self, parent, titre, on_delete_callback, on_duplicate_callback, update_total_callback, couleur_header="transparent", couleur_panneau="transparent"):
@@ -141,18 +143,37 @@ class MonApp(ctk.CTk):
         self.grid_columnconfigure(0, weight=1) 
         self.grid_rowconfigure(1, weight=1)
 
+        self.manager = GridAccordionManager()
+
         ctrl_frame = ctk.CTkFrame(self)
-        ctrl_frame.grid(column=0, row=0, sticky="ew")
+        ctrl_frame.grid(column=0, row=next_free_row(self), sticky="ew")
+        ctrl_frame.grid_columnconfigure(0, weight=1)
+
+         # On ajoute une brique d'exemple pour montrer le fonctionnement dès le lancement
+        tbric = brq.Brique(ctrl_frame, "Brique Exemple", couleur_header="lightblue", couleur_panneau="white")
+        self.manager.register(tbric)
+        tbric.contenant_global.grid(row=0, column=0, sticky="ew", padx=10, pady=5)  
+
+        print(f"Prochaine ligne libre dans MonApp: {next_free_row(self)}")
+
+        # ctrl_frame = ctk.CTkFrame(self)
+        # ctrl_frame.grid(column=0, row=next_free_row(self), sticky="ew")
         
-        ctk.CTkButton(ctrl_frame, text="+ Ajouter une Zone", command=self.ajouter_zone).pack(pady=5)
-        
+
+        ctk.CTkButton(ctrl_frame, text="+ Ajouter une Zone", command=self.ajouter_zone).grid(row=5, column=0, padx=10, pady=5)
+       
+       
+             
         # Affichage du Total des âges et du statut "Au moins un actif"
 
+
         self.label_statut = ctk.CTkLabel(ctrl_frame, text="○ Aucun actif", font=("Arial", 12))
-        self.label_statut.pack(side="left", padx=10) # Placé devant (à gauche) du total
+        self.label_statut.grid(row=next_free_row(ctrl_frame), column=0, padx=10, pady=5, sticky="w")
+        # self.label_statut.grid(side="left", padx=10) # Placé devant (à gauche) du total
         
         self.label_total = ctk.CTkLabel(ctrl_frame, text="Total des âges : 0", font=("Arial", 14, "bold"))
-        self.label_total.pack(side="left", padx=10)
+        self.label_total.grid(row=next_free_row(ctrl_frame), column=0, padx=10, pady=5, sticky="w")     
+        # self.label_total.pack(side="left", padx=10)
 
         #   Nouveau label pour la liste des noms des zones actives
         self.label_noms_actifs = ctk.CTkLabel(
@@ -161,7 +182,7 @@ class MonApp(ctk.CTk):
             font=("Arial", 11, "italic"),
             wraplength=450 # Permet au texte de passer à la ligne s'il y a trop de noms
         )
-        self.label_noms_actifs.grid(column=0, row=2, pady=5, sticky="ew")
+        self.label_noms_actifs.grid(column=0, row=next_free_row(self), pady=5, sticky="ew")
 
         
 
@@ -169,7 +190,7 @@ class MonApp(ctk.CTk):
         self.scroll_frame.grid(column=0, row=1, sticky="nsew")
         self.scroll_frame.grid_columnconfigure(0, weight=1)
 
-        self.manager = GridAccordionManager()
+        # self.manager = GridAccordionManager()
 
     # Propriété pour calculer le total des âges de toutes les zones
 

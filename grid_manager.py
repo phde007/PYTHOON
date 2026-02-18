@@ -13,6 +13,7 @@ class GridAccordionManager:
         # Mémorise la config du panneau interne (souvent row=1)
         structure.grid_params = structure.panneau_affichable.grid_info()
         structure.base_text = structure.button_toggle.cget("text")
+        # print(f"Registered structure with base text: '{structure.base_text}' and grid params: {structure.grid_params}")
         
         self.structures.append(structure)
         
