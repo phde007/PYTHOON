@@ -7,26 +7,21 @@ class ZoneConfinee:
     def __init__(self, parent, titre, on_delete_callback, on_duplicate_callback, update_total_callback, couleur_header="transparent", couleur_panneau="transparent"):
         self.is_visible = False
         self.titre = titre
-        self.update_total_callback = update_total_callback # Stockage de la fonction de mise à jour
+        self.update_total_callback = update_total_callback
 
         self.widgets_data = {}
         
-        # 1. Variable de contrôle pour l'âge avec "trace"
+        # Variable de contrôle pour l'âge
         self.age_var = ctk.StringVar(value="")
-        # À chaque modification ("write"), on appelle la fonction de mise à jour du total
         self.age_var.trace_add("write", lambda *args: self.update_total_callback())
-
-
-        # Enregistrement de la validation (indispensable pour CTkEntry
-        # Note : '%P' représente le contenu futur de l'entrée après la modification proposée
 
         vcmd = (parent.register(self._valider_chiffres), '%P')
 
-        # 2. Conteneur principal
+        # Conteneur principal
         self.contenant_global = ctk.CTkFrame(parent)
         self.contenant_global.grid_columnconfigure(0, weight=1)
 
-        # 3. Header
+        # Header
         header_frame = ctk.CTkFrame(self.contenant_global, fg_color=couleur_header)
         header_frame.grid(row=0, column=0, sticky="ew")
         header_frame.grid_columnconfigure(0, weight=1)
@@ -40,24 +35,22 @@ class ZoneConfinee:
         btn_del = ctk.CTkButton(header_frame, text="X", width=30, fg_color="#922b21", command=lambda: on_delete_callback(self))
         btn_del.grid(row=0, column=2, padx=(2, 5), pady=5)
 
-        # 4. Panneau affichable
+        # Panneau affichable
         self.panneau_affichable = ctk.CTkFrame(self.contenant_global, fg_color=couleur_panneau)
         self.panneau_affichable.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
         self.panneau_affichable.grid_columnconfigure(0, weight=1) 
        
-        # Variable pour le nom avec surveillance de sa modification afin de rafraîchir les indicateurs liés (ex: liste des actifs)
+        # Variable pour le nom
         self.nom_var = ctk.StringVar(value="")
         self.nom_var.trace_add("write", lambda *args: self.update_total_callback())
 
-        # Modification du widget Nom
         self.widgets_data["nom_client"] = ctk.CTkEntry(
             self.panneau_affichable, 
             placeholder_text="Nom...",
-            textvariable=self.nom_var # On lie la variable
+            textvariable=self.nom_var
         )
         self.widgets_data["nom_client"].pack(pady=5, padx=10)   
 
-        # Champ Âge (lié à age_var)
         self.widgets_data["age"] = ctk.CTkEntry(
             self.panneau_affichable, 
             placeholder_text="Âge...", 
@@ -67,43 +60,32 @@ class ZoneConfinee:
         )
         self.widgets_data["age"].pack(pady=5, padx=10)
         
-        # Création de la case à cocher "actif" et liaison avec le même callback de mise à jour du total
-        # que pour le champ âge, car cela peut aussi influencer le total si on décide de ne compter que les zones actives à l'avenir.
-        # 1. On crée une variable dédiée à la case
+        # Case à cocher "actif"
         self.actif_var = ctk.BooleanVar(value=False)
-        # 2. On lui ajoute une trace pour le changement d'état
         self.actif_var.trace_add("write", lambda *args: self.update_total_callback())
 
-        # 3. On lie la variable au checkbox
         self.widgets_data["actif"] = ctk.CTkCheckBox(
             self.panneau_affichable, 
             text="Zone Active",
-            variable=self.actif_var # <--- L'état est maintenant synchronisé
+            variable=self.actif_var
         )
-
         self.widgets_data["actif"].pack(pady=5, padx=10)
 
     def _valider_chiffres(self, contenu_futur):
-        """Méthode interne pour bloquer les caractères non-numériques."""
         return (contenu_futur.isdigit() or contenu_futur == "") and len(contenu_futur) <= 3
 
     @property
     def age(self):
-        """Propriété qui transforme le texte du widget en entier sécurisé."""
         val = self.age_var.get()
         return int(val) if val.isdigit() else 0
     
-        
     @property
     def est_active(self):
-        """Retourne True si la case 'actif' est cochée.
-          On lit la BooleanVar, c'est beaucoup plus robuste que de se fier à l'état du widget lui-même."""
         return self.actif_var.get()
     
     @property
     def nom_client(self):
-        """Récupère le texte saisi dans le champ nom."""
-        return self.widgets_data["nom_client"].get()
+        return self.nom_var.get()
 
     def toggle(self):
         if self.is_visible:
@@ -113,31 +95,18 @@ class ZoneConfinee:
         self.is_visible = not self.is_visible
 
     def get_data(self):
-        donnees = {"titre": self.titre}
-        for cle, widget in self.widgets_data.items():
-            donnees[cle] = widget.get()
+        donnees = {"titre": self.titre, "nom_client": self.nom_client, "age": self.age, "actif": self.est_active}
         return donnees
 
     def set_data(self, data):
-        """ Réinjecte les données et force la mise à jour des variables de contrôle """
-        for cle, valeur in data.items():
-            if cle == "age":
-                # On met à jour la StringVar, ce qui déclenchera automatiquement
-                # la trace et donc le calcul du total dans MonApp
-                self.age_var.set(str(valeur)) 
-            elif cle in self.widgets_data:
-                widget = self.widgets_data[cle]
-                if isinstance(widget, ctk.CTkEntry):
-                    widget.delete(0, 'end')
-                    widget.insert(0, str(valeur))
-                elif isinstance(widget, ctk.CTkCheckBox):
-                    if valeur: widget.select()
-                    else: widget.deselect()
+        if "nom_client" in data: self.nom_var.set(data["nom_client"])
+        if "age" in data: self.age_var.set(str(data["age"]))
+        if "actif" in data: self.actif_var.set(data["actif"])
                     
 class MonApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.geometry("500x600")
+        self.geometry("500x700")
         self.title("Accordéon Dynamique")
 
         self.grid_columnconfigure(0, weight=1) 
@@ -145,8 +114,9 @@ class MonApp(ctk.CTk):
 
         self.manager = GridAccordionManager()
 
+        # Frame de contrôle (Haut)
         ctrl_frame = ctk.CTkFrame(self)
-        ctrl_frame.grid(column=0, row=next_free_row(self), sticky="ew")
+        ctrl_frame.grid(column=0, row=0, sticky="ew", padx=10, pady=5)
         ctrl_frame.grid_columnconfigure(0, weight=1)
 
          # On ajoute une brique d'exemple pour montrer le fonctionnement dès le lancement
@@ -155,97 +125,61 @@ class MonApp(ctk.CTk):
         tbric.contenant_global.grid(row=0, column=0, sticky="ew", padx=10, pady=5)  
 
         print(f"Prochaine ligne libre dans MonApp: {next_free_row(self)}")
-
-        # ctrl_frame = ctk.CTkFrame(self)
-        # ctrl_frame.grid(column=0, row=next_free_row(self), sticky="ew")
         
 
-        ctk.CTkButton(ctrl_frame, text="+ Ajouter une Zone", command=self.ajouter_zone).grid(row=5, column=0, padx=10, pady=5)
+        ctk.CTkButton(ctrl_frame, text="+ Ajouter une Zone", command=self.ajouter_zone).grid(row=next_free_row(self), column=0, padx=10, pady=5)
        
-       
-             
-        # Affichage du Total des âges et du statut "Au moins un actif"
-
-
         self.label_statut = ctk.CTkLabel(ctrl_frame, text="○ Aucun actif", font=("Arial", 12))
-        self.label_statut.grid(row=next_free_row(ctrl_frame), column=0, padx=10, pady=5, sticky="w")
-        # self.label_statut.grid(side="left", padx=10) # Placé devant (à gauche) du total
+        self.label_statut.grid(row=1, column=0, padx=10, pady=2, sticky="w")
         
         self.label_total = ctk.CTkLabel(ctrl_frame, text="Total des âges : 0", font=("Arial", 14, "bold"))
-        self.label_total.grid(row=next_free_row(ctrl_frame), column=0, padx=10, pady=5, sticky="w")     
-        # self.label_total.pack(side="left", padx=10)
+        self.label_total.grid(row=2, column=0, padx=10, pady=2, sticky="w")     
 
-        #   Nouveau label pour la liste des noms des zones actives
         self.label_noms_actifs = ctk.CTkLabel(
             self, 
             text="Aucune zone active", 
             font=("Arial", 11, "italic"),
-            wraplength=450 # Permet au texte de passer à la ligne s'il y a trop de noms
+            wraplength=450
         )
-        self.label_noms_actifs.grid(column=0, row=next_free_row(self), pady=5, sticky="ew")
+        self.label_noms_actifs.grid(column=0, row=2, pady=10, sticky="ew")
 
-        
-
+        # Zone de défilement (Milieu)
         self.scroll_frame = ctk.CTkScrollableFrame(self)
-        self.scroll_frame.grid(column=0, row=1, sticky="nsew")
+        self.scroll_frame.grid(column=0, row=1, sticky="nsew", padx=10, pady=5)
         self.scroll_frame.grid_columnconfigure(0, weight=1)
-
-        # self.manager = GridAccordionManager()
-
-    # Propriété pour calculer le total des âges de toutes les zones
 
     @property
     def total_ages(self):
-        """Somme dynamique de toutes les propriétés 'age' des zones."""
-        return sum(zone.age for zone in self.manager.structures)
-
-   
-    # Propriété pour vérifier si au moins une zone est active (case cochée  "actif")
+        return sum(zone.age for zone in self.manager.structures if hasattr(zone, 'age'))
 
     @property
     def au_moins_un_actif(self):
-        """Retourne True si n'importe quelle zone est active (Logique OU)."""
-        return any(zone.est_active for zone in self.manager.structures)
-
-     
-
-    
-    #permet d'afficher la liste des noms des zones actives (cases cochées) dans un label dédié
+        return any(zone.est_active for zone in self.manager.structures if hasattr(zone, 'est_active'))
 
     @property
     def liste_noms_actifs(self):
-        """Retourne une chaîne de caractères des noms des zones actives."""
-        # On crée une liste des noms uniquement pour les zones où est_active est True
-        actifs = [zone.nom_client for zone in self.manager.structures if zone.est_active]
-        
-        if not actifs:
-            return "Aucune zone active"
-        
-        # On joint les noms avec une virgule (ex: "X, Y, Z")
-        return ", ".join(actifs)
+        actifs = [zone.nom_client for zone in self.manager.structures if hasattr(zone, 'est_active') and zone.est_active]
+        return ", ".join(actifs) if actifs else "Aucune zone active"
 
     def rafraichir_affichage(self):
-        """Mise à jour globale de tous les indicateurs (Total, Statut, Noms)."""
-        # 1. Mise à jour du total des âges
+        """Mise à jour synchronisée de l'interface."""
+        # Mise à jour du Total
         self.label_total.configure(text=f"Total des âges : {self.total_ages}")
         
-        # 2. Mise à jour du statut "Au moins un actif" (Point vert/gris)
+        # Mise à jour du Statut visuel
         if self.au_moins_un_actif:
             self.label_statut.configure(text="● 1 actif au moins", text_color="green")
         else:
             self.label_statut.configure(text="○ Aucun actif", text_color="gray")
 
-        # 3. Mise à jour de la liste des noms
+        # Mise à jour de la liste textuelle
         texte_liste = f"Les zones confinées {self.liste_noms_actifs} sont actives"
         self.label_noms_actifs.configure(text=texte_liste)
-
-
 
     def ajouter_zone(self, titre=None, data_initiale=None):
         if titre is None:
             titre = f"Zone {len(self.manager.structures) + 1}"
         
-        # On passe 'self.rafraichir_affichage' à chaque zone
         nouvelle_zone = ZoneConfinee(
             self.scroll_frame, titre, 
             self.supprimer_zone, self.dupliquer_zone,
@@ -268,7 +202,7 @@ class MonApp(ctk.CTk):
     def supprimer_zone(self, zone):
         self.manager.unregister(zone)
         zone.contenant_global.destroy()
-        self.rafraichir_affichage() # On recalcule après suppression
+        self.rafraichir_affichage()
 
 if __name__ == "__main__":
     app = MonApp()
