@@ -14,9 +14,13 @@ class GridAccordionManager:
         structure.grid_params = structure.panneau_affichable.grid_info()
         structure.base_text = structure.button_toggle.cget("text")
         # print(f"Registered structure with base text: '{structure.base_text}' and grid params: {structure.grid_params}")
+
+        for s in self.structures:
+            if s.is_visible: self._hide(s)
         
         self.structures.append(structure)
         
+        structure.is_visible = True
         structure.button_toggle.configure(
             command=lambda s=structure: self._handle_toggle(s)
         )

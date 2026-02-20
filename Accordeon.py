@@ -207,17 +207,7 @@ class MonApp(ctk.CTk):
         """Retourne True si n'importe quelle zone est active (Logique OU)."""
         return any(zone.est_active for zone in self.manager.structures)
 
-    def rafraichir_affichage(self): # On renomme pour tout mettre à jour
-        # Mise à jour du total des âges
-        self.label_total.configure(text=f"Total des âges : {self.total_ages}")
-        
-        # Mise à jour du statut "Au moins un actif"
-        if self.au_moins_un_actif:
-            self.label_statut.configure(text="● 1 actif au moins", text_color="green")
-        else:
-            self.label_statut.configure(text="○ Aucun actif", text_color="gray")
-
-    
+     
 
     
     #permet d'afficher la liste des noms des zones actives (cases cochées) dans un label dédié
@@ -235,10 +225,17 @@ class MonApp(ctk.CTk):
         return ", ".join(actifs)
 
     def rafraichir_affichage(self):
-        """Mise à jour globale de tous les indicateurs."""
+        """Mise à jour globale de tous les indicateurs (Total, Statut, Noms)."""
+        # 1. Mise à jour du total des âges
         self.label_total.configure(text=f"Total des âges : {self.total_ages}")
         
-        # Mise à jour du nouveau label de liste
+        # 2. Mise à jour du statut "Au moins un actif" (Point vert/gris)
+        if self.au_moins_un_actif:
+            self.label_statut.configure(text="● 1 actif au moins", text_color="green")
+        else:
+            self.label_statut.configure(text="○ Aucun actif", text_color="gray")
+
+        # 3. Mise à jour de la liste des noms
         texte_liste = f"Les zones confinées {self.liste_noms_actifs} sont actives"
         self.label_noms_actifs.configure(text=texte_liste)
 
