@@ -2,9 +2,15 @@ import customtkinter as ctk
 from grid_manager import GridAccordionManager
 import Brique as brq
 from utilitaires import next_free_row
+import visuel.constantes_couleurs as cv
+
+
+
+
 
 class ZoneConfinee:
-    def __init__(self, parent, titre, on_delete_callback, on_duplicate_callback, update_total_callback, couleur_header="transparent", couleur_panneau="transparent"):
+    def __init__(self, parent, titre, on_delete_callback, on_duplicate_callback, update_total_callback, 
+                 couleur_header=cv.ZCONF_HEADER_BG, couleur_panneau=cv.ZCONF_PANEL_BG):
         self.is_visible = False
         self.titre = titre
         self.update_total_callback = update_total_callback
@@ -32,7 +38,7 @@ class ZoneConfinee:
         btn_dup = ctk.CTkButton(header_frame, text="D", width=30, command=lambda: on_duplicate_callback(self))
         btn_dup.grid(row=0, column=1, padx=2, pady=5)
 
-        btn_del = ctk.CTkButton(header_frame, text="X", width=30, fg_color="#922b21", command=lambda: on_delete_callback(self))
+        btn_del = ctk.CTkButton(header_frame, text="X", width=30, fg_color=cv.CANCEL_BUTTON_BG, command=lambda: on_delete_callback(self))
         btn_del.grid(row=0, column=2, padx=(2, 5), pady=5)
 
         # Panneau affichable
@@ -120,7 +126,7 @@ class MonApp(ctk.CTk):
         ctrl_frame.grid_columnconfigure(0, weight=1)
 
          # On ajoute une brique d'exemple pour montrer le fonctionnement dès le lancement
-        tbric = brq.Brique(ctrl_frame, "Brique Exemple", couleur_header="lightblue", couleur_panneau="white")
+        tbric = brq.Brique(ctrl_frame, "Brique Exemple", couleur_header=cv.BRICK_HEADER_BG, couleur_panneau=cv.BRICK_PANEL_BG)
         self.manager.register(tbric)
         tbric.contenant_global.grid(row=0, column=0, sticky="ew", padx=10, pady=5)  
 
@@ -183,8 +189,7 @@ class MonApp(ctk.CTk):
         nouvelle_zone = ZoneConfinee(
             self.scroll_frame, titre, 
             self.supprimer_zone, self.dupliquer_zone,
-            update_total_callback=self.rafraichir_affichage,
-            couleur_header="lightgreen", couleur_panneau="lightgray"
+            update_total_callback=self.rafraichir_affichage
         )
         
         if data_initiale:

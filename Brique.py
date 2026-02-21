@@ -1,5 +1,6 @@
 import customtkinter as ctk
 
+
 """
 Cette classe représente une "brique" : un frame contenant_global, contenant un header et un panneau affichable.
 - Le header contient un bouton toggle pour afficher ou masquer le panneau.
@@ -8,7 +9,7 @@ Cette classe représente une "brique" : un frame contenant_global, contenant un 
 
 
 class Brique:
-    def __init__(self, parent, titre, couleur_header="#2e86c1", couleur_panneau="transparent"):
+    def __init__(self, parent, titre, couleur_header="transparent", couleur_panneau="transparent"):
         self.is_visible = False
         self.titre = titre
         
