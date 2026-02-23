@@ -9,10 +9,10 @@ from PIL import Image
 import Brique as brq
 from utilitaires import next_free_row
 import visuel.constantes_couleurs as cv
+from ZoneConfinee import ZoneConfinee
 
 
-
-
+""" 
 #region Zone Confinée
 class ZoneConfinee:
     def __init__(self, parent, titre, on_delete_callback, on_duplicate_callback, update_total_callback, 
@@ -120,13 +120,13 @@ class ZoneConfinee:
         if "nom_client" in data: self.nom_var.set(data["nom_client"])
         if "age" in data: self.age_var.set(str(data["age"]))
         if "actif" in data: self.actif_var.set(data["actif"])
-
+ """
 
 #region Application Principale                    
 class MonApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.geometry("1000x1500")
+        self.geometry("1000x700")
         self.title("Accordéon Dynamique")
 
         self.grid_columnconfigure(0, weight=1) 
