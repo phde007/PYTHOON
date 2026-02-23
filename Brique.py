@@ -1,4 +1,6 @@
 import customtkinter as ctk
+from CTkToolTip import *
+from PIL import Image
 
 
 """
@@ -30,6 +32,7 @@ class Brique:
         # Bouton Toggle unique (pas de bouton X ou D)
         self.button_toggle = ctk.CTkButton(header_frame, text=titre, anchor="w")
         self.button_toggle.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        CTkToolTip(self.button_toggle, "Afficher/Masquer les détails de cette Brique")
 
         # Panneau affichable
         self.panneau_affichable = ctk.CTkFrame(self.contenant_global, fg_color=couleur_panneau)
