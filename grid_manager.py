@@ -1,10 +1,19 @@
 # grid_manager.py
+import CTkToolTip
+import PIL
+from CTkToolTip import *
+from PIL import Image
+import Brique as brq
+from utilitaires import next_free_row
+import visuel.constantes_couleurs as cv
 
 class GridAccordionManager:
-    def __init__(self, open_prefix="▼ ", closed_prefix="▶ "):
+    def __init__(self, icon_open=None, icon_closed=None):
         self.structures = []
-        self.open_prefix = open_prefix
-        self.closed_prefix = closed_prefix
+        # On stocke des objets CTkImage au lieu de strings
+        self.icon_open = icon_open
+        self.icon_closed = icon_closed
+        
 
     def register(self, structure):
         if structure in self.structures:
@@ -12,13 +21,15 @@ class GridAccordionManager:
         
         # Mémorise la config du panneau interne (souvent row=1)
         structure.grid_params = structure.panneau_affichable.grid_info()
+        # On garde le texte tel quel sans préfixe
         structure.base_text = structure.button_toggle.cget("text")
-        # print(f"Registered structure with base text: '{structure.base_text}' and grid params: {structure.grid_params}")
 
-        for s in self.structures:
-            if s.is_visible: self._hide(s)
-        
         self.structures.append(structure)
+        
+        structure.button_toggle.configure(
+            command=lambda s=structure: self._handle_toggle(s)
+        )
+        self._update_ui(structure)
         
         structure.is_visible = True
         structure.button_toggle.configure(
@@ -57,5 +68,12 @@ class GridAccordionManager:
         self._update_ui(structure)
 
     def _update_ui(self, structure):
-        prefix = self.open_prefix if structure.is_visible else self.closed_prefix
-        structure.button_toggle.configure(text=f"{prefix}{structure.base_text}")
+        # On choisit l'icône selon l'état
+        img = self.icon_open if structure.is_visible else self.icon_closed
+        
+        # On met à jour le bouton avec l'image ET on garde le texte propre
+        structure.button_toggle.configure(
+            image=img, 
+            text=structure.base_text,
+            compound="left"  # Place l'image à gauche du texte
+        )

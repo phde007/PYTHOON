@@ -132,7 +132,10 @@ class MonApp(ctk.CTk):
         self.grid_columnconfigure(0, weight=1) 
         self.grid_rowconfigure(1, weight=1)
 
-        self.manager = GridAccordionManager()
+        self.icon_open = ctk.CTkImage(dark_image=Image.open(r".\visuel\chevron_droite.png"), size=(20,20))
+        self.icon_closed = ctk.CTkImage(dark_image=Image.open(r".\visuel\chevron_bas.png"), size=(20,20))
+        # On initialise le manager avec les icônes personnalisées des accordéons    
+        self.manager = GridAccordionManager(icon_open=self.icon_open, icon_closed=self.icon_closed)
 
         # Frame de contrôle (Haut)
         ctrl_frame = ctk.CTkFrame(self)
