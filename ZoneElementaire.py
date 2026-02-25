@@ -3,7 +3,6 @@ from tkinter import Image
 import CTkToolTip
 import PIL
 import customtkinter as ctk
-from  ZoneElementaire import ZoneElementaire
 from grid_manager import GridAccordionManager
 from CTkToolTip import *
 from PIL import Image
@@ -14,18 +13,15 @@ import visuel.constantes_couleurs as cv
 
 
 
-class ZoneConfinee:
+class ZoneElementaire:
     def __init__(self, parent, titre, on_delete_callback, on_duplicate_callback, update_total_callback, 
-                 couleur_header=cv.ZCONF_HEADER_BG, couleur_panneau=cv.ZCONF_PANEL_BG):
+                 couleur_header=cv.ZEL_HEADER_BG, couleur_panneau=cv.ZEL_PANEL_BG):
         self.is_visible = False
         self.titre = titre
         self.update_total_callback = update_total_callback
 
         self.widgets_data = {}
         
-        # On initialise le manager  des souszones de la zone confinéeavec les icônes personnalisées des accordéons    
-        self.manager = GridAccordionManager()
-
         # Variable de contrôle pour l'âge
         self.age_var = ctk.StringVar(value="")
         self.age_var.trace_add("write", lambda *args: self.update_total_callback())
@@ -61,10 +57,10 @@ class ZoneConfinee:
         CTkToolTip (self.widgets_data["nom_zconf"], "Saisissez le nom de cette Zone Confinée utilisé dans le plan de retrait ")  
 
         
-        # Bouton ajouter zone élémentaire
-        btn_add_zone = ctk.CTkButton(header_frame, text="+ Ajouter une Zone élémentaire", command=self.ajouter_zone)
+        # Bouton ajouter Appareil
+        btn_add_zone = ctk.CTkButton(header_frame, text="+ Ajouter un Appareil", width=150)
         btn_add_zone.grid(row=0, column=3, padx=5, pady=5)
-        CTkToolTip(btn_add_zone, "Ajouter une nouvelle zone élémentaire")
+        CTkToolTip(btn_add_zone, "Ajouter un nouvel appareil")
 
         duplicate_icon = ctk.CTkImage(dark_image=Image.open(r".\visuel\duplicate.png"), size=(20,20))
         btn_dup = ctk.CTkButton(header_frame, image=duplicate_icon, text="", width=30, command=lambda: on_duplicate_callback(self))
@@ -91,7 +87,7 @@ class ZoneConfinee:
             placeholder_text="Nom...",
             textvariable=self.nom_var
         )
-        self.widgets_data["nom_client"].grid(row = 0, column=0, pady=5, padx=10)   
+        self.widgets_data["nom_client"].pack(pady=5, padx=10)   
 
         self.widgets_data["age"] = ctk.CTkEntry(
             self.panneau_affichable, 
@@ -100,7 +96,7 @@ class ZoneConfinee:
             validate="key", 
             validatecommand=vcmd
         )
-        self.widgets_data["age"].grid(row=1, column=0, pady=5, padx=10)
+        self.widgets_data["age"].pack(pady=5, padx=10)
         
         # Case à cocher "actif"
         self.actif_var = ctk.BooleanVar(value=False)
@@ -111,57 +107,8 @@ class ZoneConfinee:
             text="Zone Active",
             variable=self.actif_var
         )
-        self.widgets_data["actif"].grid(row=2, column=0,pady=5, padx=10)  
+        self.widgets_data["actif"].pack(pady=5, padx=10)
 
-        # Conteneur pour les zones élémentaires
-        self.container_elements = ctk.CTkFrame(self.panneau_affichable, fg_color="transparent")
-        self.container_elements.grid(row=next_free_row(self.panneau_affichable), column=0, sticky="nsew", pady=5)
-        self.container_elements.grid_columnconfigure(0, weight=1)  
-
-    def rafraichir_affichage(self):
-        """Mise à jour synchronisée de l'interface.
-        - Total des âges
-        - Statut visuel (actif/inactif) de la zone confinée"""
-        # Mise à jour du Total
-        self.label_total.configure(text=f"Total des âges : {self.total_ages}")
-        
-        # Mise à jour du Statut visuel
-        if self.au_moins_un_actif:
-            self.label_statut.configure(text="● 1 actif au moins", text_color="green")
-        else:
-            self.label_statut.configure(text="○ Aucun actif", text_color="gray")
-
-        # Mise à jour de la liste textuelle
-        texte_liste = f"Les zones élémentaires {self.liste_noms_actifs} sont actives"
-        self.label_noms_actifs.configure(text=texte_liste)
-
-    def dupliquer_zone(self, zone_a_copier):
-        donnees_sources = zone_a_copier.get_data()
-        nouveau_titre = f"{donnees_sources['titre']} (Copie)"
-        self.ajouter_zone(titre=nouveau_titre, data_initiale=donnees_sources)
-
-    def supprimer_zone(self, zone):
-        self.manager.unregister(zone)
-        zone.contenant_global.destroy()
-        self.rafraichir_affichage()    
-
-    def ajouter_zone(self, titre=None, data_initiale=None):
-        if titre is None:
-            titre = f"Zone élémentaire {len(self.manager.structures) + 1}"        
-        nouvelle_zone = ZoneElementaire(
-           parent=self.container_elements, # Parent dédié
-           titre= titre, 
-            on_delete_callback=self.supprimer_zone, 
-            on_duplicate_callback=self.dupliquer_zone,
-            update_total_callback=self.rafraichir_affichage
-        )
-        
-        if data_initiale:
-            nouvelle_zone.set_data(data_initiale)
-
-        self.manager.register(nouvelle_zone)
-        self.manager.reorganize_grid()
-        self.rafraichir_affichage()
     def _valider_chiffres(self, contenu_futur):
         return (contenu_futur.isdigit() or contenu_futur == "") and len(contenu_futur) <= 3
 

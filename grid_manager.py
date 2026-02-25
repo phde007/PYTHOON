@@ -1,18 +1,22 @@
 # grid_manager.py
-import CTkToolTip
+from tkinter import Image
+import customtkinter as ctk
+
 import PIL
+
+import CTkToolTip
 from CTkToolTip import *
 from PIL import Image
-import Brique as brq
-from utilitaires import next_free_row
-import visuel.constantes_couleurs as cv
+
+
 
 class GridAccordionManager:
-    def __init__(self, icon_open=None, icon_closed=None):
+    def __init__(self):
         self.structures = []
         # On stocke des objets CTkImage au lieu de strings
-        self.icon_open = icon_open
-        self.icon_closed = icon_closed
+        self.icon_open = ctk.CTkImage(dark_image=Image.open(r".\visuel\chevron_droite.png"), size=(20,20))
+        self.icon_closed = ctk.CTkImage(dark_image=Image.open(r".\visuel\chevron_bas.png"), size=(20,20))
+       
         
 
     def register(self, structure):
