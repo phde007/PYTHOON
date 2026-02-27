@@ -203,14 +203,6 @@ class ZoneConfinee:
 
     @property
     def total_volume(self):
-        volumes = [zone.volume for zone in self.manager.structures if hasattr(zone, 'volume')]
-        total = sum(volumes)
-        print(f"DEBUG - Nombre d'éléments: {len(self.manager.structures)}, Premier élément a 'volume': {hasattr(self.manager.structures[0], 'volume') if self.manager.structures else 'N/A'}")
-        if volumes:
-            print(f"DEBUG - Total volume: {total}, First zone volume: {volumes[0]}")
-        else:
-            print(f"DEBUG - Total volume: {total}, No zones found")
-        return total
         return sum(zone.volume for zone in self.manager.structures if hasattr(zone, 'volume'))
         
 

@@ -3,7 +3,7 @@ from PIL import Image
 from CTkToolTip import CTkToolTip
 
 
-from  Appareils import Appareil
+import Appareils
 from grid_manager import GridAccordionManager
 
 
@@ -180,7 +180,7 @@ class ZoneElementaire:
     def ajouter_zone(self, titre=None, data_initiale=None):
         if titre is None:
             titre = f"Appareil {len(self.manager.structures) + 1}"        
-        nouvelle_zone = Appareil(
+        nouvelle_zone = Appareils.Appareil(
        parent=self.container_elements,
        titre=titre, 
        on_delete_callback=self.supprimer_zone, 
