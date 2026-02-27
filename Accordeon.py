@@ -1,11 +1,12 @@
-from tkinter import Image
+import customtkinter as ctk
+from PIL import Image
+from CTkToolTip import CTkToolTip
 
-import CTkToolTip
-import PIL
+
+
 import customtkinter as ctk
 from grid_manager import GridAccordionManager
-from CTkToolTip import *
-from PIL import Image
+
 import Brique as brq
 from utilitaires import next_free_row
 import visuel.constantes_couleurs as cv

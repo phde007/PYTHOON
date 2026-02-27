@@ -8,8 +8,6 @@ import CTkToolTip
 from CTkToolTip import *
 from PIL import Image
 
-
-
 class GridAccordionManager:
     def __init__(self):
         self.structures = []
