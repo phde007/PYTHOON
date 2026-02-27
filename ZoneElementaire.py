@@ -47,8 +47,10 @@ class ZoneElementaire:
 
 
         
-
-        vcmd = (parent.register(self._valider_chiffres), '%P')
+        # valide que le volume soit un nombre entier limité à 3 chiffres '
+        vcme = (parent.register(self._valider_chiffres), '%P')
+        # valide que le volume soit un nombre décimal (avec un point ou une virgule)
+        vcmd = (parent.register(self._valider_nombre), '%P')
 
         # Conteneur principal
         self.contenant_global = ctk.CTkFrame(parent)
@@ -119,8 +121,8 @@ class ZoneElementaire:
             self.panneau_affichable, 
             placeholder_text="Volume...",
             textvariable=self.volume_var,
-            #validate="key", 
-            #validatecommand=vcmd  # Réactivez la validation pour éviter les erreurs de conversion int()
+            validate="key", 
+            validatecommand=vcmd  # vérification carcactère par caractère du format de nombre décimal (avec point ou virgule)
         )
         self.widgets_data["volume"].grid(row=1, column=0, pady=5, padx=10)
         self.volume_var.set("15")
@@ -193,8 +195,17 @@ class ZoneElementaire:
         self.manager.register(nouvelle_zone)
         self.manager.reorganize_grid()
         self.rafraichir_affichage()
+
+        #  Validation pour n'accepter que des chiffres et un seul point ou une seule virgule (saisie d'un nombre entier limité à 3 chiffres)
     def _valider_chiffres(self, contenu_futur):
         return (contenu_futur.isdigit() or contenu_futur == "") and len(contenu_futur) <= 3
+    
+    #  Validation pour n'accepter que les chiffres et un seul point ou une seule virgule (saisie d'un nombre décimal)
+    def _valider_nombre(self, contenu_futur):
+        if contenu_futur == "": return True
+        # Autorise les chiffres, un seul point ou une seule virgule
+        import re
+        return bool(re.match(r"^\d*[.,]?\d*$", contenu_futur))
 
     
     @property
@@ -205,10 +216,14 @@ class ZoneElementaire:
     def nom_client(self):
         return self.nom_var.get()
     
+    # Dans ZoneElementaire.py - VERSION CORRIGÉE
     @property
     def volume(self):
-        val = self.volume_var.get()
-        return int(val) if val.isdigit() else 0
+        texte = self.volume_var.get().replace(',', '.')
+        try:
+            return float(texte) if texte else 0.0
+        except ValueError:
+            return 0.0
 
     def toggle(self):
         if self.is_visible:
