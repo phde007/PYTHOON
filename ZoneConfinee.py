@@ -162,7 +162,10 @@ class ZoneConfinee:
     def ajouter_zone(self, titre=None, data_initiale=None):
         if titre is None:
             titre = f"Zone élémentaire {len(self.manager.structures) + 1}"        
-    
+
+        # Masquer tous les éléments rattachés au manager courant
+        self.manager.hide_all()
+
         nouvelle_zone = ZoneElementaire(
             parent=self.container_elements,
             titre=titre, 

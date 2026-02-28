@@ -51,6 +51,12 @@ class GridAccordionManager:
             # On force le repositionnement du contenant dans son parent
             s.contenant_global.grid(row=index, column=0, sticky="ew")
 
+    def hide_all(self):
+        """Masque tous les panneaux gérés.  Utile avant d'en afficher un nouveau."""
+        for s in self.structures:
+            if s.is_visible:
+                self._hide(s)
+
     def _handle_toggle(self, target):
         if target.is_visible:
             self._hide(target)

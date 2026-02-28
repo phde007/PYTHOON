@@ -8,7 +8,7 @@ Cette classe représente une "brique" : un frame contenant_global, contenant un 
 - Le header contient un bouton toggle pour afficher ou masquer le panneau.
 - Le panneau affichable peut contenir n'importe quel widget (ici un label d'exemple est utilisé).
 """
-
+import utilitaires  
 
 class Brique:
     def __init__(self, parent, titre, couleur_header="transparent", couleur_panneau="transparent"):
@@ -44,5 +44,14 @@ class Brique:
 
         
         # Exemple de contenu pour la brique
-        label_info = ctk.CTkLabel(self.panneau_affichable, text=f"Contenu fixe de la {titre}", text_color= "black")
+        label_entete = ctk.CTkLabel(header_frame, text=f"Contenu de la {titre}", 
+                                  text_color= utilitaires.good_contrast_font_color(couleur_panneau),
+                                  font=ctk.CTkFont(size=14, weight="bold"))
+        print (f"Couleur header : {couleur_header}, Couleur du texte calculée : {utilitaires.good_contrast_font_color(couleur_header)}")
+        label_info = ctk.CTkLabel(self.panneau_affichable, text=f"Contenu fixe de la {titre}", 
+                                  text_color= utilitaires.good_contrast_font_color(couleur_panneau))
+        print (f"Couleur panneau : {couleur_panneau}, Couleur du texte calculée : {utilitaires.good_contrast_font_color(couleur_panneau)}")
+        
+    
+        
         label_info.grid(row=0, column=0,padx=20,pady=20)

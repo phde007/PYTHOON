@@ -14,7 +14,7 @@ ZEL_HEADER_BG = "#0B44E1"
 ZEL_PANEL_BG = "#1A73E8"
 
 # Couleurs pour les Appareils
-APP_HEADER_BG = "#1E651A"
-APP_PANEL_BG = "#139B11"
+APP_HEADER_BG = "#E5F04D"
+APP_PANEL_BG = "#FFF39B"
 # Couleurs pour les boutons
 CANCEL_BUTTON_BG = "#FF0000"

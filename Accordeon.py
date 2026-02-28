@@ -93,6 +93,9 @@ class MonApp(ctk.CTk):
         if titre is None:
             titre = f"Zone {len(self.manager.structures) + 1}"
         
+        # Masquer tous les éléments rattachés au manager courant
+        self.manager.hide_all()
+
         nouvelle_zone = ZoneConfinee(
             self.scroll_frame, titre, 
             self.supprimer_zone, self.dupliquer_zone,

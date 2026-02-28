@@ -3,7 +3,7 @@ from PIL import Image
 from CTkToolTip import CTkToolTip
 
 
-import Appareils
+from Appareils import Appareil
 from grid_manager import GridAccordionManager
 
 
@@ -23,8 +23,7 @@ class ZoneElementaire:
 
         self.widgets_data = {}
         
-        # On initialise le manager  des sous-zones de la zone élémentaire (en particulier les appareils) 
-        # avec les icônes personnalisées des accordéons    
+        # On initialise le manager  des sous structures (appareils et briques) dans la zone élémentaire
         self.manager = GridAccordionManager()
     
         """ # Variable de contrôle pour le volume
@@ -125,7 +124,7 @@ class ZoneElementaire:
             validatecommand=vcmd  # vérification carcactère par caractère du format de nombre décimal (avec point ou virgule)
         )
         self.widgets_data["volume"].grid(row=1, column=0, pady=5, padx=10)
-        self.volume_var.set("15")
+        
 
         
         # Case à cocher "actif"
@@ -179,13 +178,17 @@ class ZoneElementaire:
 
     def ajouter_zone(self, titre=None, data_initiale=None):
         if titre is None:
-            titre = f"Appareil {len(self.manager.structures) + 1}"        
-        nouvelle_zone = Appareils.Appareil(
-       parent=self.container_elements,
-       titre=titre, 
-       on_delete_callback=self.supprimer_zone, 
-       on_duplicate_callback=self.dupliquer_zone,
-       update_total_callback=self.update_total_callback # Remonte vers ZoneConfinee.rafraichir_affichage
+            titre = f"Appareil {len(self.manager.structures) + 1}" 
+
+        # Masquer tous les éléments rattachés au manager courant
+        self.manager.hide_all()
+
+        nouvelle_zone = Appareil(
+        parent=self.container_elements,
+        titre=titre, 
+        on_delete_callback=self.supprimer_zone, 
+        on_duplicate_callback=self.dupliquer_zone,
+        update_total_callback=self.update_total_callback # Remonte vers ZoneConfinee.rafraichir_affichage
     )
   
         
