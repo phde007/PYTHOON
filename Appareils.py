@@ -3,7 +3,7 @@ from PIL import Image
 from CTkToolTip import CTkToolTip
 
 
-from  Appareils import Appareil
+
 from grid_manager import GridAccordionManager
 
 
@@ -23,6 +23,8 @@ class Appareil:
 
         self.widgets_data = {}
         
+        # On initialise le manager  des sous structures (briques) dans l'appareil
+        self.manager = GridAccordionManager()
         
         """ # Variable de contrôle pour le débit
         self.débit_var = ctk.StringVar(value="")
@@ -69,7 +71,7 @@ class Appareil:
         self.tooltip_toggle = CTkToolTip(self.button_toggle, message="Afficher/Masquer les détails de cet appareil")
 
         # Type de l'appareil 
-        label_type = ctk.CTkLabel(header_frame, text="Type: ")
+        label_type = ctk.CTkLabel(header_frame, text="Type: ", text_color="black")
         label_type.grid(row=0, column=1, padx=(10, 5), pady=5)
 
         self.type_var = ctk.StringVar(value="")
@@ -83,26 +85,29 @@ class Appareil:
 
         self.widgets_data["type"].grid(row=0, column=2, sticky="ew", padx=5, pady=5)
         self.tooltip_type = CTkToolTip(self.widgets_data["type"], message="Sélectionnez le type d'appareil")
+
+        # Nombre d'appareils de ce type dans la zone élémentaire
+        label_nombre = ctk.CTkLabel(header_frame, text="Nombre App. : ", text_color="black")
+        label_nombre.grid(row=0, column=3, padx=(10, 5), pady=5)
+
        
         self.nombre_appareils_var = ctk.StringVar(value="1")
         self.widgets_data["nombre_appareils"] = ctk.CTkEntry(
             header_frame,
             width=50,
-            textvariable=self.nombre_appareils_var
+            textvariable=self.nombre_appareils_var,
             validate="key", 
-            validatecommand=vcmc  # vérification caractère par caractère du format de nombre entier
+            validatecommand=vcme  # vérification caractère par caractère du format de nombre entier
         )
-        self.widgets_data["nombre_appareils"].grid(row=0, column=3, padx=2, pady=5)
+        self.widgets_data["nombre_appareils"].grid(row=0, column=4, padx=2, pady=5)
+        self.tooltip_nombre = CTkToolTip(self.widgets_data["nombre_appareils"], message="Saisissez le nombre d'appareils de ce type dans la zone élémentaire")
 
-        duplicate_icon = ctk.CTkImage(dark_image=Image.open(r".\visuel\duplicate.png"), size=(20,20))
-        btn_dup = ctk.CTkButton(header_frame, image=duplicate_icon, text="", width=30, command=lambda: on_duplicate_callback(self))
-        btn_dup.grid(row=0, column=4, padx=2, pady=5)
-        self.tooltip_dup = CTkToolTip(btn_dup, message="Dupliquer cet appareil avec les mêmes paramètres")
 
+    
         # suppression avec icône de poubelle
         poubelle = ctk.CTkImage(dark_image=Image.open(r".\visuel\bin.png"), size=(20,20))
         btn_del = ctk.CTkButton(header_frame, image=poubelle, text="", width=30, fg_color=cv.CANCEL_BUTTON_BG, command=lambda: on_delete_callback(self))
-        btn_del.grid(row=0, column=5, padx=(2, 5), pady=5)
+        btn_del.grid(row=0, column=6, padx=(2, 5), pady=5)
         self.tooltip_del = CTkToolTip(btn_del, message="Supprimer cet appareil")
 
         #region  Panneau Affichable
@@ -110,7 +115,8 @@ class Appareil:
         self.panneau_affichable.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
         self.panneau_affichable.grid_columnconfigure(0, weight=1) 
        
-        self.label_debit = ctk.CTkLabel(self.panneau_affichable, text="Débit (m³/h) :")
+        self.label_debit = ctk.CTkLabel(self.panneau_affichable, text="Débit (m³/h) :", text_color="black")
+        self.label_debit.grid(row=1, column=0, sticky="w", padx=10, pady=(5, 0))
         # Entrée pour le débit de l'appareil
 
         self.débit_var = ctk.StringVar(value="")
@@ -124,15 +130,12 @@ class Appareil:
             validatecommand=vcmd  # vérification caractère par caractère du format de nombre décimal (avec point ou virgule)
         )
         self.widgets_data["débit"].grid(row=1, column=0, pady=5, padx=10)
-        self.débit_var.set("15")
+        
 
 
 
 
-    def dupliquer_zone(self, zone_a_copier):
-        donnees_sources = zone_a_copier.get_data()
-        nouveau_titre = f"{donnees_sources['titre']} (Copie)"
-        self.ajouter_zone(titre=nouveau_titre, data_initiale=donnees_sources)
+    
 
     def supprimer_zone(self, zone):
         self.manager.unregister(zone)
