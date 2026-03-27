@@ -236,10 +236,23 @@ class ZoneElementaire:
         self.is_visible = not self.is_visible
 
     def get_data(self):
-        donnees = {"titre": self.titre, "nom_client": self.nom_client, "volume": self.volume, "actif": self.est_active}
-        return donnees
+        return {
+            "titre": self.titre,
+            "nom_zele": self.nom_zele_var.get(),
+            "nom_client": self.nom_var.get(),
+            "volume": self.volume,
+            "actif": self.est_active,
+            "appareils": [a.get_data() for a in self.manager.structures if isinstance(a, Appareil)]
+        }
 
     def set_data(self, data):
+        # restauration des widgets appartenant en propre à la zone élémentaire
         if "nom_client" in data: self.nom_var.set(data["nom_client"])
         if "volume" in data: self.volume_var.set(str(data["volume"]))
         if "actif" in data: self.actif_var.set(data["actif"])
+
+        # Restauration des enfants
+        if "appareils" in data:
+            for z_data in data["appareils"]:
+                self.ajouter_zone(titre=z_data.get("titre"), data_initiale=z_data)
+

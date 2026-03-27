@@ -12,6 +12,8 @@ from utilitaires import next_free_row
 import visuel.constantes_couleurs as cv
 from ZoneConfinee import ZoneConfinee
 
+import sauvegarde_restauration as gd
+
 #region Application Principale                    
 class MonApp(ctk.CTk):
     def __init__(self):
@@ -125,11 +127,21 @@ class MonApp(ctk.CTk):
         zone.contenant_global.destroy()
         self.rafraichir_affichage()
 
-    def sauvegarder():
-        pass
+    def sauvegarder(self):
+        # On passe uniquement les structures gérées par le manager de l'app
+        if gd.sauvegarder_dossier(self.manager.structures):
+            print("Sauvegarde réussie")
 
-    def restaurer():
-        pass
+    def restaurer(self):
+        donnees = gd.charger_dossier()
+        if donnees:
+            # 1. Nettoyer l'existant
+            for s in list(self.manager.structures):
+                self.supprimer_zone(s)
+                
+            # 2. Reconstruire
+            for z_data in donnees:
+                self.ajouter_zone(titre=z_data.get("titre"), data_initiale=z_data)
 
 
 if __name__ == "__main__":
