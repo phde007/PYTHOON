@@ -1,14 +1,17 @@
 import customtkinter as ctk
+from CTkToolTip import *
+from PIL import Image
+
 
 """
 Cette classe représente une "brique" : un frame contenant_global, contenant un header et un panneau affichable.
 - Le header contient un bouton toggle pour afficher ou masquer le panneau.
 - Le panneau affichable peut contenir n'importe quel widget (ici un label d'exemple est utilisé).
 """
-
+import utilitaires  
 
 class Brique:
-    def __init__(self, parent, titre, couleur_header="#2e86c1", couleur_panneau="transparent"):
+    def __init__(self, parent, titre, couleur_header="transparent", couleur_panneau="transparent"):
         self.is_visible = False
         self.titre = titre
         
@@ -29,6 +32,7 @@ class Brique:
         # Bouton Toggle unique (pas de bouton X ou D)
         self.button_toggle = ctk.CTkButton(header_frame, text=titre, anchor="w")
         self.button_toggle.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        CTkToolTip(self.button_toggle, "Afficher/Masquer les détails de cette Brique")
 
         # Panneau affichable
         self.panneau_affichable = ctk.CTkFrame(self.contenant_global, fg_color=couleur_panneau)
@@ -40,5 +44,14 @@ class Brique:
 
         
         # Exemple de contenu pour la brique
-        label_info = ctk.CTkLabel(self.panneau_affichable, text=f"Contenu fixe de la {titre}", text_color= "black")
+        label_entete = ctk.CTkLabel(header_frame, text=f"Contenu de la {titre}", 
+                                  text_color= utilitaires.good_contrast_font_color(couleur_panneau),
+                                  font=ctk.CTkFont(size=14, weight="bold"))
+        print (f"Couleur header : {couleur_header}, Couleur du texte calculée : {utilitaires.good_contrast_font_color(couleur_header)}")
+        label_info = ctk.CTkLabel(self.panneau_affichable, text=f"Contenu fixe de la {titre}", 
+                                  text_color= utilitaires.good_contrast_font_color(couleur_panneau))
+        print (f"Couleur panneau : {couleur_panneau}, Couleur du texte calculée : {utilitaires.good_contrast_font_color(couleur_panneau)}")
+        
+    
+        
         label_info.grid(row=0, column=0,padx=20,pady=20)
