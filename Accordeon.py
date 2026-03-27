@@ -39,11 +39,17 @@ class MonApp(ctk.CTk):
 
         print(f"Prochaine ligne libre dans MonApp: {next_free_row(self)}")
         
+        
+        # Boutons de sauvegarde et restauration
 
-        ctk.CTkButton(ctrl_frame, text="+ Ajouter une Zone Confinée", command=self.ajouter_zone).grid(row=next_free_row(self), column=0, padx=10, pady=5)
+        rr= next_free_row(self)
+        ctk.CTkButton(ctrl_frame, text="💾 Sauvegarder le dossier en cours", command=self.sauvegarder).grid(row=rr, column=1, padx=5)
+        ctk.CTkButton(ctrl_frame, text="📂 Restaurer un dossier enregistré", command=self.restaurer).grid(row=rr, column=2, sticky="w", padx=5)
+
+        ctk.CTkButton(ctrl_frame, text="+ Ajouter une Zone Confinée", command=self.ajouter_zone).grid(row=rr, column=0, padx=10, pady=5)
        
-        self.label_statut = ctk.CTkLabel(ctrl_frame, text="○ Aucun actif", font=("Arial", 12))
-        self.label_statut.grid(row=1, column=0, padx=10, pady=2, sticky="w")
+        # self.label_statut = ctk.CTkLabel(ctrl_frame, text="○ Aucun actif", font=("Arial", 12))
+        # self.label_statut.grid(row=1, column=0, padx=10, pady=2, sticky="w")
         
         self.label_total = ctk.CTkLabel(ctrl_frame, text="Total des âges : 0", font=("Arial", 14, "bold"))
         self.label_total.grid(row=2, column=0, padx=10, pady=2, sticky="w")     
@@ -118,6 +124,13 @@ class MonApp(ctk.CTk):
         self.manager.unregister(zone)
         zone.contenant_global.destroy()
         self.rafraichir_affichage()
+
+    def sauvegarder():
+        pass
+
+    def restaurer():
+        pass
+
 
 if __name__ == "__main__":
     app = MonApp()
