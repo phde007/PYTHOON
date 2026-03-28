@@ -71,8 +71,21 @@ class Appareil:
         self.tooltip_toggle = CTkToolTip(self.button_toggle, message="Afficher/Masquer les détails de cet appareil")
 
         # Type de l'appareil 
+        
         label_type = ctk.CTkLabel(header_frame, text="Type: ", text_color="black")
         label_type.grid(row=0, column=1, padx=(10, 5), pady=5)
+
+        def panneau_selon_type_appareil (type):
+            if type== "Sas Personnel":
+                self._panneau_sas_personnel()
+            elif type== "Sas Matériel":
+                self._panneau_sas_matériel()
+            elif type== "EACM":
+                self._panneau_EACM()
+            elif type== "Extracteur":
+                self._panneau_extracteur()
+            elif type== "EAR":
+                self._panneau_EAR()
 
         self.type_var = ctk.StringVar(value="")
         self.widgets_data["type"] = ctk.CTkComboBox(
@@ -80,7 +93,8 @@ class Appareil:
             values=["Sas Personnel", "Sas Matériel", "EACM", "Extracteur", "EAR"],
             variable=self.type_var,
             font=ctk.CTkFont(weight="bold"),        
-            state="readonly"
+            state="readonly", 
+            command= panneau_selon_type_appareil
         )
 
         self.widgets_data["type"].grid(row=0, column=2, sticky="ew", padx=5, pady=5)
@@ -132,7 +146,22 @@ class Appareil:
         self.widgets_data["débit"].grid(row=1, column=0, pady=5, padx=10)
         
 
+    # Construction des panneaux selon le type d'appareil
+ 
+    def _panneau_sas_personnel(self):
+        pass
 
+    def _panneau_sas_matériel(self):
+        pass
+
+    def _panneau_EACM(self):
+        pass
+
+    def  _panneau_extracteur(self):
+        pass
+
+    def _panneau_EAR(self):
+        pass
 
 
     
