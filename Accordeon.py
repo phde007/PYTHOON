@@ -3,12 +3,11 @@ from PIL import Image
 from CTkToolTip import CTkToolTip
 
 
-
 import customtkinter as ctk
 from grid_manager import GridAccordionManager
 
 import Brique as brq
-from utilitaires import next_free_row
+from utilitaires import next_free_row, good_contrast_font_color
 import visuel.constantes_couleurs as cv
 from ZoneConfinee import ZoneConfinee
 
@@ -29,22 +28,20 @@ class MonApp(ctk.CTk):
         # On initialise le manager avec les icônes personnalisées des accordéons    
         self.manager = GridAccordionManager()
 
-        # Frame de contrôle (Haut)
+        # Frame de contrôle (Haut), destiné à recueillir les boutons d'ajout de zones, de sauvegarde/restauration, et autres contrôles globaux
         ctrl_frame = ctk.CTkFrame(self)
         ctrl_frame.grid(column=0, row=0, sticky="ew", padx=10, pady=5)
         ctrl_frame.grid_columnconfigure(0, weight=1)
 
-         # On ajoute une brique d'exemple pour montrer le fonctionnement dès le lancement
-        tbric = brq.Brique(ctrl_frame, "Brique Exemple", couleur_header=cv.BRICK_HEADER_BG, couleur_panneau=cv.BRICK_PANEL_BG)
-        self.manager.register(tbric)
-        tbric.contenant_global.grid(row=0, column=0, sticky="ew", padx=10, pady=5)  
+       
 
-        print(f"Prochaine ligne libre dans MonApp: {next_free_row(self)}")
+
+       
         
         
         # Boutons de sauvegarde et restauration
 
-        rr= next_free_row(self)
+        rr= next_free_row(ctrl_frame)
         ctk.CTkButton(ctrl_frame, text="💾 Sauvegarder le dossier en cours", command=self.sauvegarder).grid(row=rr, column=1, padx=5)
         ctk.CTkButton(ctrl_frame, text="📂 Restaurer un dossier enregistré", command=self.restaurer).grid(row=rr, column=2, sticky="w", padx=5)
 
@@ -54,7 +51,7 @@ class MonApp(ctk.CTk):
         # self.label_statut.grid(row=1, column=0, padx=10, pady=2, sticky="w")
         
         self.label_total = ctk.CTkLabel(ctrl_frame, text="Total des âges : 0", font=("Arial", 14, "bold"))
-        self.label_total.grid(row=2, column=0, padx=10, pady=2, sticky="w")     
+        self.label_total.grid(row=3, column=0, padx=10, pady=2, sticky="w")     
 
         self.label_noms_actifs = ctk.CTkLabel(
             self, 
@@ -68,6 +65,56 @@ class MonApp(ctk.CTk):
         self.scroll_frame = ctk.CTkScrollableFrame(self)
         self.scroll_frame.grid(column=0, row=1, sticky="nsew", padx=10, pady=5)
         self.scroll_frame.grid_columnconfigure(0, weight=1)
+
+
+          # On ajoute une brique d'exemple pour montrer le fonctionnement dès le lancement
+        tbric = brq.Brique(self.scroll_frame, "Brique Exemple", manager =self.manager, couleur_header=cv.BRICK_HEADER_BG, couleur_panneau=cv.BRICK_PANEL_BG)
+        self.manager.register(tbric)
+        tbric.contenant_global.grid(row=0, column=0, sticky="ew", padx=10, pady=5)  
+
+
+        # On ajoute une seconde brique d'exemple pour montrer le fonctionnement dès le lancement avec ses fonctions de callback d'affichage et de masquage
+        def lors_de_l_ouverture():
+            print("La brique est maintenant visible !")
+            # Exemple : rafraîchir les étiquettes de l'application
+            app.rafraichir_affichage()
+
+        def lors_de_la_fermeture():
+            print("La brique a été masquée.")
+
+
+   
+        tbric2 = brq.Brique(self.scroll_frame, "Brique N°2", manager =self.manager, couleur_header=cv.BRICK_HEADER_BG, 
+                            couleur_panneau=cv.BRICK_PANEL_BG,on_show_callback=lors_de_l_ouverture,
+                            on_hide_callback=lors_de_la_fermeture)
+        self.manager.register(tbric2)
+        tbric2.contenant_global.grid(row=next_free_row(self.scroll_frame), column=0, sticky="ew", padx=10, pady=5)  
+        # 2. AJOUT DANS LE HEADER (après le titre et la navigation)
+        # Le titre est en colonne 0, la navigation en colonne 1. On utilise la colonne 2.
+        btn_header = ctk.CTkButton(tbric2.header_frame, text="Action Header", width=100, height=24)
+        btn_header.grid(row=0, column=2, padx=10)
+        # 3. AJOUT DANS LE PANNEAU
+        # On récupère le frame du panneau via la méthode dédiée
+        self.couleur_texte_panneau = good_contrast_font_color(cv.BRICK_PANEL_BG)
+        print(f"Couleur de texte choisie pour le panneau : {self.couleur_texte_panneau}")
+        panneau_cible = tbric2.get_panneau()
+        panneau_cible.grid_columnconfigure(1, weight=1)
+        label_interne = ctk.CTkLabel(panneau_cible, text="Ce widget a été ajouté depuis MonApp !", font=("Arial", 12),text_color=self.couleur_texte_panneau)
+        label_interne.grid(row=0, column=0, padx=10, pady=10)
+        
+        # ajoutons deux champs de saisie dans le panneau de la brique N°2 pour montrer que le panneau peut contenir n'importe quel widget
+        # et surtout que le panneau s'étire correctement pour les accueillir grâce au sticky="ew" géré par le manager lors de l'affichage de la brique
+        label_champ1 = ctk.CTkLabel(panneau_cible, text="Champ de saisie 1 :", font=("Arial", 12), text_color=self.couleur_texte_panneau)
+        label_champ1.grid(row=1, column=0, padx=10, pady=5, sticky="w")
+        entry_champ1 = ctk.CTkEntry(panneau_cible)  
+        entry_champ1.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
+        label_champ2 = ctk.CTkLabel(panneau_cible, text="Champ de saisie 2 :", font=("Arial", 12), text_color=self.couleur_texte_panneau)
+        label_champ2.grid(row=1, column=3, padx=10, pady=5, sticky="w")
+        entry_champ2 = ctk.CTkEntry(panneau_cible)                  
+        entry_champ2.grid(row=1, column=4, padx=10, pady=5, sticky="ew")
+
+
+
 
     @property
     def total_ages(self):
@@ -115,6 +162,7 @@ class MonApp(ctk.CTk):
 
         self.manager.register(nouvelle_zone)
         self.manager.reorganize_grid()
+        self.update()
         self.rafraichir_affichage()
 
     def dupliquer_zone(self, zone_a_copier):

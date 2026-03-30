@@ -40,7 +40,7 @@ def contrast_choice(bg_color, light_color="#ffffff", dark_color="#000000"):
     font = good_contrast_font_color(bg_color)
     # si la fonction a jugé que du blanc est nécessaire, on renvoie
     # la teinte claire, sinon la teinte foncée
-    print (f"Pour le fond {bg_color}, la couleur de contraste est {font}. On choisit {light_color if font == 'white' else dark_color}.")
+    # print (f"Pour le fond {bg_color}, la couleur de contraste est {font}. On choisit {light_color if font == 'white' else dark_color}.")
     return light_color if font == "white" else dark_color
 
 
