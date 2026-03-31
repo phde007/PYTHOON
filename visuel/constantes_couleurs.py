@@ -18,3 +18,9 @@ APP_HEADER_BG = "#E5F04D"
 APP_PANEL_BG = "#FFF39B"
 # Couleurs pour les boutons
 CANCEL_BUTTON_BG = "#FF0000"
+
+
+# Couleurs pour les Tooltips
+TOOLTIP_BG = "#333333"
+TOOLTIP_FG = "#FFFFFF"
+TOOLTIP_BORDER_COLOR = "#555555"

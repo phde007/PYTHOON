@@ -4,6 +4,7 @@ from CTkToolTip import CTkToolTip
 
 
 import customtkinter as ctk
+from BriquesSaisieBase import BriqueSaisieBaseChantier
 from grid_manager import GridAccordionManager
 
 import Brique as brq
@@ -113,8 +114,12 @@ class MonApp(ctk.CTk):
         entry_champ2 = ctk.CTkEntry(panneau_cible)                  
         entry_champ2.grid(row=1, column=4, padx=10, pady=5, sticky="ew")
 
+        # Ajout d'une brique de saisie spécifique pour l'identification du chantier, 
+        # qui héritera de la classe de base de saisie et qui sera utilisée pour les données de chantier
 
-
+        brique_chantier = BriqueSaisieBaseChantier(self.scroll_frame, manager=self.manager)
+        self.manager.register(brique_chantier.interface)
+      
 
     @property
     def total_ages(self):
@@ -130,7 +135,9 @@ class MonApp(ctk.CTk):
         return ", ".join(actifs) if actifs else "Aucune zone active"
 
     def rafraichir_affichage(self):
-        """Mise à jour synchronisée de l'interface."""
+
+        """
+        # Mise à jour synchronisée de l'interface."
         # Mise à jour du Total
         self.label_total.configure(text=f"Total des âges : {self.total_ages}")
         
@@ -143,6 +150,8 @@ class MonApp(ctk.CTk):
         # Mise à jour de la liste textuelle
         texte_liste = f"Les zones confinées {self.liste_noms_actifs} sont actives"
         self.label_noms_actifs.configure(text=texte_liste)
+        """
+        pass
 
     def ajouter_zone(self, titre=None, data_initiale=None):
         if titre is None:
@@ -152,10 +161,13 @@ class MonApp(ctk.CTk):
         self.manager.hide_all()
 
         nouvelle_zone = ZoneConfinee(
-            self.scroll_frame, titre, 
-            self.supprimer_zone, self.dupliquer_zone,
+            parent=self.scroll_frame, 
+            titre=titre, 
+            manager=self.manager,  # On passe explicitement le manager de l'app
+            on_delete_callback=self.supprimer_zone, 
+            on_duplicate_callback=self.dupliquer_zone,
             update_total_callback=self.rafraichir_affichage
-        )
+        )       
         
         if data_initiale:
             nouvelle_zone.set_data(data_initiale)
@@ -176,7 +188,16 @@ class MonApp(ctk.CTk):
         self.rafraichir_affichage()
 
     def sauvegarder(self):
-        # On passe uniquement les structures gérées par le manager de l'app
+        data_principale = {
+            "total_ages": self.total_ages,
+            "au_moins_un_actif": self.au_moins_un_actif,
+            "liste_noms_actifs": self.liste_noms_actifs,
+            "donnees_chantier": self.smc.get_data()  # On récupère les données de la brique de saisie de chantier
+        }
+        # On passe uniquement les structures gérées par le manager de l'application, 
+        # qui sont les zones confinées (et pas les briques de saisie de base qui sont 
+        # utilisées pour des données globales du chantier et qui ne sont pas destinées 
+        # à être sauvegardées/restaurées dans le cadre de la gestion des zones confinées)
         if gd.sauvegarder_dossier(self.manager.structures):
             print("Sauvegarde réussie")
 

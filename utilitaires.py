@@ -1,5 +1,8 @@
 # programme d'intérêt général : fournit le prochain index libre pour une zone
 # évite une gestion compliquée des index de lignes dans les frames utilisant grid
+import CTkToolTip
+
+
 def next_free_row(container):
     """
     Retourne le prochain index de ligne libre dans un container grid.
@@ -46,3 +49,25 @@ def contrast_choice(bg_color, light_color="#ffffff", dark_color="#000000"):
 
 contrast_choice("#AA9EAC")
 contrast_choice("#080111")
+
+
+
+
+# fonction d'intérêt général : Emballage des Tooltips pour pallier un bug de DPI Scaling au changement d'écran
+def create_tooltip(widget, message):
+    """Crée une infobulle configurée avec les correctifs de DPI scaling."""
+    import visuel.constantes_couleurs as cv
+    import CTkToolTip as ctp
+    tooltip = ctp.CTkToolTip(
+        widget, 
+        message=message, 
+        delay=0.5,
+        bg_color=cv.TOOLTIP_BG, 
+        text_color=cv.TOOLTIP_FG, 
+        border_width=1, 
+        border_color=cv.TOOLTIP_BORDER_COLOR
+    )
+    # Application systématique du correctif DPI
+    tooltip.block_update_dimensions_event = lambda: None
+    tooltip.unblock_update_dimensions_event = lambda: None
+    return tooltip

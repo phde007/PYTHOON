@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from CTkToolTip import *
-import utilitaires 
-
+import utilitaires as ut
+import visuel.constantes_couleurs as cv
 
 """
 Cette classe représente une "brique" : un frame contenant_global, contenant un header et un panneau affichable.
@@ -40,13 +40,21 @@ class Brique:
         self.header_frame = ctk.CTkFrame(self.contenant_global, fg_color=couleur_header)
         self.header_frame.grid(row=0, column=0, sticky="ew")
         self.header_frame.grid_columnconfigure(0, weight=1)     # Le titre prend l'espace
+        #self.header_frame.configure(fg_color="red") pour le test du header
 
-
-        self.button_toggle = ctk.CTkButton(self.header_frame, text=titre, anchor="w", height=35)
-        self.button_toggle.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        # Dans Brique.py, modifiez la création du bouton ainsi :
+        self.button_toggle = ctk.CTkButton(
+            self.header_frame, 
+            text=titre, 
+            anchor="w", 
+            height=35,
+            command=lambda: self.manager.toggle_section(self) # ajout de la commande de bascule au bouton de titre
+        )
+        self.button_toggle.grid(row=0, column=0, sticky="ew", padx=5, pady=2)
 
         # --- AJOUT CRUCIAL : Le frame de navigation que le manager cherche ---
         self.frame_nav = ctk.CTkFrame(self.header_frame, fg_color="transparent")
+        # self.frame_nav.grid(row=0, column=1, sticky="e", padx=5)  # On place le frame de navigation à droite dans le header
         
         self.btn_prev = ctk.CTkButton(self.frame_nav, text="⟲", width=30, command=self.manager.navigate_back)
         self.btn_prev.grid(row=0, column=0, padx=2)
@@ -54,26 +62,36 @@ class Brique:
         self.btn_next = ctk.CTkButton(self.frame_nav, text="⟳", width=30, command=self.manager.navigate_forward)
         self.btn_next.grid(row=0, column=1, padx=2)
 
+        # ajout d'une zone de contrôles secondaires dans le header (pour les boutons d'action spécifiques à la brique) que 
+        # le manager n'utilise pas mais qui peut être utilisée par l'application pour ajouter des boutons d'action spécifiques à la brique 
+        # (ex : un bouton "Ajouter un élément" dans une brique de gestion d'une liste d'éléments), que les classes filles
+        # peuvent utiliser pour ajouter des boutons d'action spécifiques à la brique sans interférer avec 
+        # les boutons de navigation gérés par le manager)
+
+        self.extra_controls_frame = ctk.CTkFrame(
+            self.header_frame, 
+            fg_color="transparent",
+            height=0,  # Empêche le frame de pousser en hauteur
+            width=0    # Empêche le frame de pousser en largeur
+        )
+        # L'utilisation de sticky="ns" est importante : 
+        # elle permettra au frame de s'étirer pour correspondre à la hauteur 
+        # du bouton de titre (qui est la référence de hauteur du header).
+        self.extra_controls_frame.grid(row=0, column=2, padx=5, sticky="nse")
+
         #  on ajoute une infobulle sur le bouton de navigation "Précédent" 
 
         t1=CTkToolTip(self.btn_prev, message="Revenir à la rubrique précédente dans l'historique de navigation", delay=0.5,
-                        bg_color="#2B2B2B", text_color="#FFFFFF", border_width=1, border_color="#555555")
+                        bg_color=cv.TOOLTIP_BG, text_color=cv.TOOLTIP_FG, border_width=1, border_color=cv.TOOLTIP_BORDER_COLOR)
         t1.block_update_dimensions_event =lambda:None  # Pallie un bug du DPI Scaling au changement d'écran
         t1.unblock_update_dimensions_event =lambda:None  # Pallie un bug du DPI Scaling au changement d'écran
-        #  on ajoute une infobulle sur le bouton de navigation "Suivant" 
-        t2=CTkToolTip(self.btn_next, message="Aller à la rubrique suivante dans l'historique de navigation (si disponible)",delay=0.5,
-                      bg_color="#2B2B2B", text_color="#FFFFFF", border_width=1, border_color="#555555")
-    
-        t2.block_update_dimensions_event =lambda:None  # Pallie un bug du DPI Scaling au changement d'écran
-        t2.unblock_update_dimensions_event =lambda:None  # Pallie un bug du DPI Scaling au changement d'écran
-        #  5. On peut aussi ajouter une infobulle sur le bouton toggle 
-        t3=CTkToolTip(self.button_toggle, message="Afficher ou masquer le panneau de saisie de cette rubrique", delay=0.5,
-                      bg_color="#2B2B2B", text_color="#FFFFFF", border_width=1, border_color="#555555")
-        t3.block_update_dimensions_event =lambda:None  # Pallie un bug du DPI Scaling au changement d'écran# 6. On peut aussi ajouter une infobulle sur le header 
-        t4=CTkToolTip(self.header_frame, message="Ceci est le header de la rubrique, contenant le titre et les boutons de navigation", delay=0.5,
-                      bg_color="#2B2B2B", text_color="#FFFFFF", border_width=1, border_color="#555555")
-        t4.block_update_dimensions_event =lambda:None  # Pallie un bug du DPI Scaling au changement d'écran
-        t4.unblock_update_dimensions_event =lambda:None  # Pallie un bug du DPI Scaling au changement d'écran
+        
+        #  Ajout des infobulles sur les éléments du header existant dans toutes les briques (boutons de navigation et bouton toggle)
+        
+        ut.create_tooltip(self.btn_prev, "Revenir à la rubrique précédente dans l'historique de navigation")
+        ut.create_tooltip(self.btn_next, "Aller à la rubrique suivante dans l'historique de navigation (si disponible)")
+        ut.create_tooltip(self.button_toggle, "Afficher ou masquer le panneau de saisie de cette rubrique")
+        ut.create_tooltip(self.header_frame, "Ceci est le header de la rubrique, contenant le titre et les boutons de navigation")
 
         # --- Panneau affichable étiré ---
         self.panneau_affichable = ctk.CTkFrame(self.contenant_global, fg_color=couleur_panneau)
@@ -83,7 +101,7 @@ class Brique:
         # La configuration du grid du panneau est stockée par le manager lors du register()
         
         # Gestion des couleurs de texte pour le contraste
-        self.couleur_texte_panneau = utilitaires.good_contrast_font_color(couleur_panneau)
+        self.couleur_texte_panneau = ut.good_contrast_font_color(couleur_panneau)
 
     def vider_panneau(self):
         """Supprime tous les widgets à l'intérieur du panneau."""
