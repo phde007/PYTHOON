@@ -11,9 +11,8 @@ utilisées une seule fois dans le programme.  Les briques de saisie plus complex
 
 import customtkinter as ctk
 import BriqueSaisie as bs # Import de votre classe de base persistante
+from utilitaires_gui import GUITools  
 
-import customtkinter as ctk
-import BriqueSaisie as bs
 
 class BriqueSaisieBaseChantier(bs.BriqueSaisie):
     def __init__(self, parent, manager, **kwargs):
@@ -60,3 +59,58 @@ class BriqueSaisieBaseChantier(bs.BriqueSaisie):
         panneau.grid_columnconfigure(1, weight=1)
 
 
+
+class BriqueSaisieDocumentationReglementaire(bs.BriqueSaisie):
+    def __init__(self, parent, manager, **kwargs):
+        # On initialise la base avec le titre spécifique
+        super().__init__(parent, "Généralités sur les fonctionnalités de l'assistant, et sur la Documentation Réglementaire", manager, **kwargs)
+        
+        # On récupère le panneau de l'interface créée par le parent
+        panneau = self.interface.get_panneau()
+        
+        # Contenu purement documentaire
+        doc_text = (            
+            "L'assistant est conçu pour aider les professionnels en charge du contrôle des bilans aérauliques à préparer des réponse circonstanciées " + 
+            "aux MOA en retour de l'examen des bilans aérauliques qu'ils leur ont soumis pour approbation, en leur fournissant des ressources et des outils " +
+            "pour mieux comprendre les exigences réglementaires et les méthodes de calcul associées et en leur demander éventuellement des précisions ou des " + 
+            " informations complémentaires. " +
+            "\n\nL'évaluation des bilans aérauliques repose sur le document de référence de l'INRS ED6307 : \n\t[Outil de calcul des bilans aérauliques], " +
+            " téléchargeable sur (https://www.inrs.fr/media.html?refINRS=ED%206307)" +
+            "\n\n Il est nécessaire de renseigner les données de chantier dans cette application avant de pouvoir utiliser les outils de calcul et d'évaluation des bilans aérauliques, " + 
+            "car ces données sont utilisées pour contextualiser les évaluations et les réponses aux MOA." +
+            "\nLa meilleure façon de procéder est d'utiliser l'outil de calcul des bilans aérauliques de l'INRS " +
+            "ce qui assure de travailler avec un outil conforme à la réglementation et de bénéficier de mises à jour régulières en cas de changements réglementaires." +
+             "\n\t- [Outil de calcul des bilans aérauliques](https://www.inrs.fr/publications/outils/amiante-aeraulique/outil.html#/)" +
+            "\n\nCet outil de calcul est enrichi par des fiches de définition des appareils couramment utilisés dans les installations confinées, ce qui " +
+            "permet de gagner du temps dans la saisie des données et d'assurer une meilleure précision dans les évaluations." +
+            "Ensuite, le plus simple est d'exporter les données du bilan aéraulique au format Excel depuis l'outil de calcul de l'INRS et " +
+            "de les importer dans cette application. Ensuite, cette application peut être utilisée pour préparer des réponses circonstanciées aux MOA " + 
+            "en retour de l'examen des bilans aérauliques qu'ils ont soumis pour approbation"
+        )
+        
+        
+                
+        # 1. Création du Textbox
+        # border_width=0 et fg_color="transparent" pour qu'il ressemble à un label
+        self.txt_doc = ctk.CTkTextbox(
+            panneau, 
+            wrap="word", 
+            fg_color="transparent", # Pour se fondre dans le panneau
+            border_width=0,
+            height=300, # Ajustez la hauteur selon vos besoins (le textbox ne gère pas toujours bien le wrap avec une hauteur auto, donc on fixe une hauteur raisonnable)
+            font=("Arial", 12),
+            activate_scrollbars=False # Optionnel si le texte est court
+        )
+        self.txt_doc.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
+       
+
+        # Insertion du texte
+        self.txt_doc.insert("0.0", doc_text)
+
+         # Détection des liens hypertextes dans le texte et création de tags pour les rendre cliquables
+        GUITools.setup_hyperlinks(self.txt_doc)
+        self.txt_doc.configure(state="disabled")
+
+
+        # 3. VERROUILLAGE : On rend le texte non éditable
+        self.txt_doc.configure(state="disabled")

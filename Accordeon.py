@@ -4,7 +4,8 @@ from CTkToolTip import CTkToolTip
 
 
 import customtkinter as ctk
-from BriquesSaisieBase import BriqueSaisieBaseChantier
+import BriquesSaisieBase as bsb
+
 from grid_manager import GridAccordionManager
 
 import Brique as brq
@@ -19,7 +20,7 @@ class MonApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.geometry("1000x700")
-        self.title("Accordéon Dynamique")
+        self.title("DREETS - Assistant de Contrôle et de validation des Bilans aérauliques - v1.0")
 
         self.grid_columnconfigure(0, weight=1) 
         self.grid_rowconfigure(1, weight=1)
@@ -34,7 +35,9 @@ class MonApp(ctk.CTk):
         ctrl_frame.grid(column=0, row=0, sticky="ew", padx=10, pady=5)
         ctrl_frame.grid_columnconfigure(0, weight=1)
 
-       
+       # Titre de l'application dans le frame de contrôle
+        label_titre = ctk.CTkLabel(ctrl_frame, text="Assistant de Contrôle et de validation des Bilans aérauliques", font=("Arial", 24, "bold"))
+        label_titre.grid(row=0, column=0, columnspan=5, padx=10, pady=5)
 
 
        
@@ -68,57 +71,21 @@ class MonApp(ctk.CTk):
         self.scroll_frame.grid_columnconfigure(0, weight=1)
 
 
-          # On ajoute une brique d'exemple pour montrer le fonctionnement dès le lancement
-        tbric = brq.Brique(self.scroll_frame, "Brique Exemple", manager =self.manager, couleur_header=cv.BRICK_HEADER_BG, couleur_panneau=cv.BRICK_PANEL_BG)
-        self.manager.register(tbric)
-        tbric.contenant_global.grid(row=0, column=0, sticky="ew", padx=10, pady=5)  
+        #region briques Base
+
+        # Ajout d'une brique purement documentaire qui pointe vers la documentation officielle de la méthode de calcul des bilans aérauliques, 
 
 
-        # On ajoute une seconde brique d'exemple pour montrer le fonctionnement dès le lancement avec ses fonctions de callback d'affichage et de masquage
-        def lors_de_l_ouverture():
-            print("La brique est maintenant visible !")
-            # Exemple : rafraîchir les étiquettes de l'application
-            app.rafraichir_affichage()
+        self.brique_documentation_reglementaire = bsb.BriqueSaisieDocumentationReglementaire(self.scroll_frame, manager=self.manager)
+        self.manager.register(self.brique_documentation_reglementaire.interface)
 
-        def lors_de_la_fermeture():
-            print("La brique a été masquée.")
-
-
-   
-        tbric2 = brq.Brique(self.scroll_frame, "Brique N°2", manager =self.manager, couleur_header=cv.BRICK_HEADER_BG, 
-                            couleur_panneau=cv.BRICK_PANEL_BG,on_show_callback=lors_de_l_ouverture,
-                            on_hide_callback=lors_de_la_fermeture)
-        self.manager.register(tbric2)
-        tbric2.contenant_global.grid(row=next_free_row(self.scroll_frame), column=0, sticky="ew", padx=10, pady=5)  
-        # 2. AJOUT DANS LE HEADER (après le titre et la navigation)
-        # Le titre est en colonne 0, la navigation en colonne 1. On utilise la colonne 2.
-        btn_header = ctk.CTkButton(tbric2.header_frame, text="Action Header", width=100, height=24)
-        btn_header.grid(row=0, column=2, padx=10)
-        # 3. AJOUT DANS LE PANNEAU
-        # On récupère le frame du panneau via la méthode dédiée
-        self.couleur_texte_panneau = good_contrast_font_color(cv.BRICK_PANEL_BG)
-        print(f"Couleur de texte choisie pour le panneau : {self.couleur_texte_panneau}")
-        panneau_cible = tbric2.get_panneau()
-        panneau_cible.grid_columnconfigure(1, weight=1)
-        label_interne = ctk.CTkLabel(panneau_cible, text="Ce widget a été ajouté depuis MonApp !", font=("Arial", 12),text_color=self.couleur_texte_panneau)
-        label_interne.grid(row=0, column=0, padx=10, pady=10)
-        
-        # ajoutons deux champs de saisie dans le panneau de la brique N°2 pour montrer que le panneau peut contenir n'importe quel widget
-        # et surtout que le panneau s'étire correctement pour les accueillir grâce au sticky="ew" géré par le manager lors de l'affichage de la brique
-        label_champ1 = ctk.CTkLabel(panneau_cible, text="Champ de saisie 1 :", font=("Arial", 12), text_color=self.couleur_texte_panneau)
-        label_champ1.grid(row=1, column=0, padx=10, pady=5, sticky="w")
-        entry_champ1 = ctk.CTkEntry(panneau_cible)  
-        entry_champ1.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
-        label_champ2 = ctk.CTkLabel(panneau_cible, text="Champ de saisie 2 :", font=("Arial", 12), text_color=self.couleur_texte_panneau)
-        label_champ2.grid(row=1, column=3, padx=10, pady=5, sticky="w")
-        entry_champ2 = ctk.CTkEntry(panneau_cible)                  
-        entry_champ2.grid(row=1, column=4, padx=10, pady=5, sticky="ew")
+         
 
         # Ajout d'une brique de saisie spécifique pour l'identification du chantier, 
         # qui héritera de la classe de base de saisie et qui sera utilisée pour les données de chantier
 
-        brique_chantier = BriqueSaisieBaseChantier(self.scroll_frame, manager=self.manager)
-        self.manager.register(brique_chantier.interface)
+        self.brique_chantier = bsb.BriqueSaisieBaseChantier(self.scroll_frame, manager=self.manager)
+        self.manager.register(self.brique_chantier.interface)
       
 
     @property
@@ -188,30 +155,34 @@ class MonApp(ctk.CTk):
         self.rafraichir_affichage()
 
     def sauvegarder(self):
-        data_principale = {
-            "total_ages": self.total_ages,
-            "au_moins_un_actif": self.au_moins_un_actif,
-            "liste_noms_actifs": self.liste_noms_actifs,
-            "donnees_chantier": self.smc.get_data()  # On récupère les données de la brique de saisie de chantier
+        # 1. On prépare le gros paquet de données
+        data_a_sauver = {
+            "infos_globales": {
+                "total_ages": self.total_ages,
+                "au_moins_un_actif": self.au_moins_un_actif,
+                "liste_noms_actifs": self.liste_noms_actifs,
+            },
+            # On récupère les données de la brique de chantier
+            "donnees_chantier": self.brique_chantier.get_data(), 
+            
+            # On récupère les données de toutes les zones du manager
+            "zones_confinees": [z.get_data() for z in self.manager.structures if hasattr(z, 'get_data')]
         }
-        # On passe uniquement les structures gérées par le manager de l'application, 
-        # qui sont les zones confinées (et pas les briques de saisie de base qui sont 
-        # utilisées pour des données globales du chantier et qui ne sont pas destinées 
-        # à être sauvegardées/restaurées dans le cadre de la gestion des zones confinées)
-        if gd.sauvegarder_dossier(self.manager.structures):
-            print("Sauvegarde réussie")
+
+        # 2. On envoie ce dictionnaire unique à la fonction de sauvegarde
+        if gd.sauvegarder_dossier(data_a_sauver):
+            print("Sauvegarde réussie avec toutes les données.")
 
     def restaurer(self):
         donnees = gd.charger_dossier()
         if donnees:
-            # 1. Nettoyer l'existant
-            for s in list(self.manager.structures):
-                self.supprimer_zone(s)
+            # Restauration du chantier
+            if "donnees_chantier" in donnees:
+                self.brique_chantier.set_data(donnees["donnees_chantier"])
                 
-            # 2. Reconstruire
-            for z_data in donnees:
+            # Restauration des zones
+            for z_data in donnees.get("zones_confinees", []):
                 self.ajouter_zone(titre=z_data.get("titre"), data_initiale=z_data)
-
 
 if __name__ == "__main__":
     app = MonApp()
