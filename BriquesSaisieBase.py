@@ -10,11 +10,11 @@ utilisées une seule fois dans le programme.  Les briques de saisie plus complex
 """
 
 import customtkinter as ctk
-import BriqueSaisie as bs # Import de votre classe de base persistante
+import BriqueSaisieSansFilles as bs # Import de votre classe de base persistante
 from utilitaires_gui import GUITools  
 
 
-class BriqueSaisieBaseChantier(bs.BriqueSaisie):
+class BriqueSaisieBaseChantier(bs.BriqueSaisieSansFilles):
     def __init__(self, parent, manager, **kwargs):
         # On initialise la base avec le titre spécifique
         super().__init__(parent, "Identification du Chantier", manager, **kwargs)
@@ -60,7 +60,7 @@ class BriqueSaisieBaseChantier(bs.BriqueSaisie):
 
 
 
-class BriqueSaisieDocumentationReglementaire(bs.BriqueSaisie):
+class BriqueSaisieDocumentationReglementaire(bs.BriqueSaisieSansFilles):
     def __init__(self, parent, manager, **kwargs):
         # On initialise la base avec le titre spécifique
         super().__init__(parent, "Généralités sur les fonctionnalités de l'assistant, et sur la Documentation Réglementaire", manager, **kwargs)
