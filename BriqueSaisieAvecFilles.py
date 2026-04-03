@@ -20,11 +20,11 @@ comme les briques de saisie d'informations client, d'informations sur le projet,
 from numpy import var
 
 from grid_manager import GridAccordionManager
-
+import Brique as brk
 
 class BriqueSaisieAvecFilles:
     def __init__(self, parent, titre, manager_parent, **kwargs):
-        import Brique as brk
+        self.est_zone_dynamique = True # <--- C'est une brique dynamique, puisqu'elle peut contenir des briques filles 
         
         # 1. On stocke le manager de l'étage SUPÉRIEUR
         self.manager_parent = manager_parent
@@ -37,32 +37,17 @@ class BriqueSaisieAvecFilles:
         self.manager_filles = GridAccordionManager()
 
     def get_data(self):
-        # 1. On récupère automatiquement les champs simples
-        # Note : on vérifie si la variable a une méthode .get() pour éviter les erreurs avec des types de variables non standard
-        data = {cle: (var.get() if hasattr(var, 'get') else var) for cle, var in self.mapping_champs.items()}
-        
-        # 2. On ajoute les données structurelles fixes
-        data["titre"] = self.titre
-
-        # 3. Export des enfants (on utilise une clé dynamique selon le besoin)
-        # Si c'est une ZoneConfinee, la clé sera 'zones_elementaires'
-        # Si c'est une ZoneElementaire, ce sera 'appareils'
-        cle_enfant = getattr(self, "nom_cle_export", "enfants")
-        data[cle_enfant] = [enfant.get_data() for enfant in self.manager.structures]
-        
-        return data
-
-
-    def get_data(self):
-        # Récupération des champs locaux via le mapping
+        # Correction : self.persist_vars au lieu de self.self.persist_vars
         data = {cle: (var.get() if hasattr(var, 'get') else var) 
-                for cle, var in self.mapping_champs.items()}
+                for cle, var in self.persist_vars.items()} #
         
-        data["titre"] = self.interface.titre # Utilise le titre de l'interface
+        data["titre"] = self.interface.titre 
 
-        # On demande l'export aux enfants via le manager INTERNE
+        # Export des enfants
         cle_enfant = getattr(self, "nom_cle_export", "enfants")
-        data[cle_enfant] = [enfant.get_data() for enfant in self.manager_filles.structures]
+        # On appelle get_data sur les objets enregistrés dans le manager de filles
+        data[cle_enfant] = [enfant.get_data() for enfant in self.manager_filles.structures 
+                            if hasattr(enfant, 'get_data')]
         
         return data
 
@@ -75,8 +60,9 @@ class BriqueSaisieAvecFilles:
             if cle in data:
                 var.set(data[cle])
 
-        # 2. On restaure les enfants (Partie répétitive)
+        # 2. Restaure les enfants
         if "enfants" in data:
-            for enfant_data in data["enfants"]:
-                # On appelle votre méthode de création habituelle
-                self.ajouter_zone(titre=enfant_data.get("titre"), data_initiale=enfant_data)
+            # On boucle sur les structures du manager interne
+            for i, enfant in enumerate(self.manager_filles.structures):
+                if i < len(data["enfants"]):
+                    enfant.set_data(data["enfants"][i])

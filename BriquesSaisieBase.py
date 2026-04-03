@@ -18,7 +18,8 @@ from utilitaires_gui import GUITools
 #region Classes test
 #_________________________________________________________________________________________________________________________
 # Classes de test  pour les briques imbriquées, une brique avec filles contentant une brique sans filles, pour tester la navigation et l'export des données imbriquées
-#_________________________________________________________________________________________________________________________
+#_Ne pas donner d'ID de restauration ni à la brique avec filles ni à la brique sans filles
+#________________________________________________________________________________________________________________________
 class BriqueSansFillesTest(bsf.BriqueSaisieSansFilles):
     def __init__(self, parent, titre, manager, **kwargs):
         # On initialise la base avec le titre spécifique
@@ -45,7 +46,7 @@ class BriqueSansFillesTest(bsf.BriqueSaisieSansFilles):
         entry_champ2.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
 
         # Configuration de l'étalement
-        panneau.grid_columnconfigure(1, weight=1)
+        panneau.grid_columnconfigure(0, weight=1)
 
 
 
@@ -54,22 +55,31 @@ class BriqueContenanteTest(baf.BriqueSaisieAvecFilles):
         super().__init__(parent, titre, manager, **kwargs)
         
         # Initialisation de self.persist_vars (Attention : baf ne le crée pas par défaut)
-        self.persist_vars = {} 
+        
+        self.persist_vars = {} # <--- TRÈS IMPORTANT pour get_data()
+        self.persist_vars = {"nom_chantier": ctk.StringVar(value="" ) 
+        }
         
         panneau = self.interface.get_panneau()
-        self.persist_vars["description"] = ctk.StringVar(value="")
-            
-        lbl_description = ctk.CTkLabel(panneau, text="Description :")
+        # Noter ici comment on déclare un label dans la liste des variables à sauver, 
+        # ce qui permet de sauvegarder automatiquement le texte du label dans les données exportées, 
+        # et de le restaurer dans les données importées, ce qui est très pratique pour les briques 
+        # avec filles qui peuvent être dupliquées plusieurs fois et dont on veut que les titres soient 
+        # personnalisables et sauvegardés dans les données exportées.
+        self.persist_vars["description"] = ctk.StringVar(value="")   
+        self.persist_vars["label_description"] = ctk.StringVar(value="Description :")
+        lbl_description = ctk.CTkLabel(panneau, textvariable=self.persist_vars["label_description"])
+        # fin de l'exemple de déclaration d'un label dans les variables à sauver
         lbl_description.grid(row=0, column=0, padx=10, pady=5, sticky="w")
         entry_description = ctk.CTkEntry(panneau, textvariable=self.persist_vars["description"])
         entry_description.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
 
         #ajout d'une brique fille de test (une brique sans filles) dans la brique contenante
-        self.brique_fille_test = BriqueSansFillesTest(panneau, "Sous-Brique Test", manager=self.manager_filles)
-        self.manager_filles.register(self.brique_fille_test.interface)
+        self.brique_fille_test = BriqueSansFillesTest(panneau,titre, manager=self.manager_filles)
+        self.manager_filles.register(self.brique_fille_test)
 
         # Configuration de l'étalement
-        panneau.grid_columnconfigure(1, weight=1)
+        panneau.grid_columnconfigure(0, weight=1)
 
 
 
@@ -78,7 +88,8 @@ class BriqueSaisieBaseChantier(bsf.BriqueSaisieSansFilles):
     def __init__(self, parent, manager, **kwargs):
         # On initialise la base avec le titre spécifique
         super().__init__(parent, "Identification du Chantier", manager, **kwargs)
-        
+        self.est_zone_dynamique = False # C'est une brique fixe
+                
         # On récupère le panneau de l'interface créée par le parent
         panneau = self.interface.get_panneau()
         
@@ -124,7 +135,8 @@ class BriqueSaisieDocumentationReglementaire(bsf.BriqueSaisieSansFilles):
     def __init__(self, parent, manager, **kwargs):
         # On initialise la base avec le titre spécifique
         super().__init__(parent, "Généralités sur les fonctionnalités de l'assistant, et sur la Documentation Réglementaire", manager, **kwargs)
-        
+        self.est_zone_dynamique = False # C'est une brique fixe
+
         # On récupère le panneau de l'interface créée par le parent
         panneau = self.interface.get_panneau()
         

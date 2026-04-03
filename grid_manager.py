@@ -14,24 +14,39 @@ class GridAccordionManager:
         self.history_forward = []  # Pile pour le bouton "Suivant"
         self.current_active = None # La brique actuellement dépliée
 
+    # grid_manager.py
+
     def register(self, structure):
         if structure in self.structures:
             return
         
-        # Mémorise la configuration de grille du panneau interne
-        structure.grid_params = structure.panneau_affichable.grid_info()
-        # On s'assure que la brique connaît son nom d'origine pour l'affichage
+        # --- AJOUT : Récupération de la référence visuelle ---
+        # Si on a passé l'objet métier, on travaille sur son .interface
+        # Sinon, on travaille sur l'objet lui-même (compatibilité ascendante)
+        visuel = structure.interface if hasattr(structure, 'interface') else structure
+        
+        # On stocke les références visuelles nécessaires au manager sur l'objet enregistré
+        # pour que les méthodes _show, _hide et _update_ui fonctionnent toujours.
+        structure._v_panneau = visuel.panneau_affichable
+        structure._v_contenant = visuel.contenant_global
+        structure._v_button_toggle = visuel.button_toggle
+        structure._v_frame_nav = visuel.frame_nav
+        structure._v_btn_prev = visuel.btn_prev
+        structure._v_btn_next = visuel.btn_next
+
+        # Correction de la ligne 22 : on utilise la référence qu'on vient de trouver
+        structure.grid_params = structure._v_panneau.grid_info()
+        
         if not hasattr(structure, 'base_text'):
-            structure.base_text = structure.button_toggle.cget("text")
+            structure.base_text = structure._v_button_toggle.cget("text")
 
         self.structures.append(structure)
         
-        # On lie le clic sur le titre à la gestion du manager
-        structure.button_toggle.configure(
+        # On lie le bouton au handle_toggle
+        structure._v_button_toggle.configure(
             command=lambda s=structure: self._handle_toggle(s)
         )
         
-        # Initialisation de l'UI (fermé par défaut)
         self._hide(structure)
 
     def unregister(self, structure):
@@ -86,51 +101,44 @@ class GridAccordionManager:
             if s.is_visible:
                 self._hide(s)
 
+   
     def _show(self, structure):
-        # On ajoute explicitement sticky="ew" lors de l'affichage du panneau pour garantir l'étirement horizontal
-        structure.panneau_affichable.grid(**structure.grid_params, sticky="ew") 
+        structure._v_panneau.grid(**structure.grid_params, sticky="ew") 
         structure.is_visible = True
         self._update_ui(structure)
-        # DÉCLENCHEMENT DU CALLBACK D'AFFICHAGE
         if hasattr(structure, 'on_show_callback') and structure.on_show_callback:
             structure.on_show_callback()
 
     def _hide(self, structure):
-        structure.panneau_affichable.grid_forget()
+        structure._v_panneau.grid_forget()
         structure.is_visible = False
         self._update_ui(structure)
-        # DÉCLENCHEMENT DU CALLBACK DE MASQUAGE
         if hasattr(structure, 'on_hide_callback') and structure.on_hide_callback:
             structure.on_hide_callback()
 
     def _update_ui(self, structure):
-        # 1. Mise à jour de l'icône de l'accordéon
         img = self.icon_open if structure.is_visible else self.icon_closed
-        structure.button_toggle.configure(image=img, text=structure.base_text, compound="left")
+        structure._v_button_toggle.configure(image=img, text=structure.base_text, compound="left")
         
-        # 2. Gestion des boutons de navigation contextuels
         if structure.is_visible:
-            # On affiche le frame de navigation (colonne 1 du header)
-            structure.frame_nav.grid(row=0, column=1, padx=5)
-            
-            # On grise les boutons si l'historique est vide
+            structure._v_frame_nav.grid(row=0, column=1, padx=5)
             state_back = "normal" if self.history_back else "disabled"
             state_fwd = "normal" if self.history_forward else "disabled"
-            structure.btn_prev.configure(state=state_back)
-            structure.btn_next.configure(state=state_fwd)
+            structure._v_btn_prev.configure(state=state_back)
+            structure._v_btn_next.configure(state=state_fwd)
         else:
-            # On masque totalement la navigation si la brique est fermée
-            structure.frame_nav.grid_forget()
+            structure._v_frame_nav.grid_forget()
 
     def _scroll_to_item(self, structure):
         """Centre l'affichage sur la brique activée"""
-        structure.contenant_global.update_idletasks()
-        parent = structure.contenant_global.master
+        # Utilisation de la référence visuelle créée au register (_v_contenant)
+        structure._v_contenant.update_idletasks()
+        parent = structure._v_contenant.master
         
         # Si le parent est un CTkScrollableFrame, on accède au canvas interne
         if hasattr(parent, "_parent_canvas"):
             canvas = parent._parent_canvas
-            y_pos = structure.contenant_global.winfo_y()
+            y_pos = structure._v_contenant.winfo_y()
             
             # Calcul de la position relative (0.0 à 1.0)
             # On récupère la hauteur totale du contenu du canvas
@@ -142,5 +150,4 @@ class GridAccordionManager:
 
     def reorganize_grid(self):
         for index, s in enumerate(self.structures):
-            # On s'assure que le contenant_global occupe toute la largeur (sticky="ew")
-            s.contenant_global.grid(row=index, column=0, sticky="ew", padx=5, pady=2)
+            s._v_contenant.grid(row=index, column=0, sticky="ew", padx=5, pady=2)

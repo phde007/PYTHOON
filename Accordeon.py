@@ -75,7 +75,8 @@ class MonApp(ctk.CTk):
 
         # Ajout d'une brique de test contenant une autre brique de test
         self.brique_test_avec_filles = bsb.BriqueContenanteTest(self.scroll_frame, "Brique avec filles", manager=self.manager)
-        self.manager.register(self.brique_test_avec_filles.interface)
+        self.brique_test_avec_filles.id_restauration = "brique_test_avec_filles" # On quement par la méthode de restauration
+        self.manager.register(self.brique_test_avec_filles)
 
 
 
@@ -85,7 +86,8 @@ class MonApp(ctk.CTk):
 
 
         self.brique_documentation_reglementaire = bsb.BriqueSaisieDocumentationReglementaire(self.scroll_frame, manager=self.manager)
-        self.manager.register(self.brique_documentation_reglementaire.interface)
+        self
+        self.manager.register(self.brique_documentation_reglementaire)
 
          
 
@@ -93,7 +95,8 @@ class MonApp(ctk.CTk):
         # qui héritera de la classe de base de saisie et qui sera utilisée pour les données de chantier
 
         self.brique_chantier = bsb.BriqueSaisieBaseChantier(self.scroll_frame, manager=self.manager)
-        self.manager.register(self.brique_chantier.interface)
+        self.brique_chantier.id_restauration = "brique_chantier"
+        self.manager.register(self.brique_chantier)
       
 
     @property
@@ -142,7 +145,8 @@ class MonApp(ctk.CTk):
             on_delete_callback=self.supprimer_zone, 
             on_duplicate_callback=self.dupliquer_zone,
             update_total_callback=self.rafraichir_affichage
-        )       
+        )
+        nouvelle_zone.est_zone_dynamique = True # Forcément une zone confinée est une zone dynamique
         
         if data_initiale:
             nouvelle_zone.set_data(data_initiale)
@@ -162,34 +166,49 @@ class MonApp(ctk.CTk):
         zone.contenant_global.destroy()
         self.rafraichir_affichage()
 
+        
+
     def sauvegarder(self):
-        # 1. On prépare le gros paquet de données
         data_a_sauver = {
-            "infos_globales": {
-                "total_ages": self.total_ages,
-                "au_moins_un_actif": self.au_moins_un_actif,
-                "liste_noms_actifs": self.liste_noms_actifs,
-            },
-            # On récupère les données de la brique de chantier
-            "donnees_chantier": self.brique_chantier.get_data(), 
-            
-            # On récupère les données de toutes les zones du manager
-            "zones_confinees": [z.get_data() for z in self.manager.structures if hasattr(z, 'get_data')]
+            "infos_globales": self.get_infos_globales(),
+            "zones_confinees": []
         }
 
-        # 2. On envoie ce dictionnaire unique à la fonction de sauvegarde
-        if gd.sauvegarder_dossier(data_a_sauver):
-            print("Sauvegarde réussie avec toutes les données.")
+        for z in self.manager.structures:
+            if not hasattr(z, 'get_data'): continue
+            
+            # Cas 1 : Brique fixe (on crée une clé spécifique dans le dictionnaire)
+            if hasattr(z, 'id_restauration'):
+                data_a_sauver[z.id_restauration] = z.get_data()
+                
+            # Cas 2 : Brique dynamique (on l'ajoute à la liste)
+            elif getattr(z, 'est_zone_dynamique', False):
+                data_a_sauver["zones_confinees"].append(z.get_data())
+
+        gd.sauvegarder_dossier(data_a_sauver)
+
 
     def restaurer(self):
         donnees = gd.charger_dossier()
-        if donnees:
-            # Restauration du chantier
-            if "donnees_chantier" in donnees:
-                self.brique_chantier.set_data(donnees["donnees_chantier"])
-                
-            # Restauration des zones
-            for z_data in donnees.get("zones_confinees", []):
+        if not donnees: return
+
+        # --- PARTIE 1 : Restauration des briques fixes ---
+        # On boucle sur les structures actuelles du manager
+        for z in self.manager.structures:
+            # Si la brique a un ID et que cet ID est présent dans le fichier JSON
+            restoration_id = getattr(z, 'id_restauration', None)
+            if restoration_id and restoration_id in donnees:
+                z.set_data(donnees[restoration_id])
+
+        # --- PARTIE 2 : Restauration des zones dynamiques ---
+        # On nettoie les zones existantes
+        for z in list(self.manager.structures):
+            if getattr(z, 'est_zone_dynamique', False):
+                self.supprimer_zone(z)
+
+        # On recrée les zones à partir de la liste JSON
+        for z_data in donnees.get("zones_confinees", []):
+            if z_data:
                 self.ajouter_zone(titre=z_data.get("titre"), data_initiale=z_data)
 
 if __name__ == "__main__":

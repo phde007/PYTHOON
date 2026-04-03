@@ -10,6 +10,11 @@ comme les briques de saisie d'informations client, d'informations sur le projet,
 """
 class BriqueSaisieSansFilles:
     def __init__(self, parent, titre, manager, **kwargs):
+        
+        self.est_zone_dynamique = False # Par défaut, on considère que c'est une brique fixe 
+        #(une brique de saisie sans filles est par définition une brique fixe, puisqu'elle ne peut pas contenir 
+        # de briques filles dynamiques)
+
         import Brique as brk
         # On crée l'interface physique
         self.interface = brk.Brique(parent, titre, manager, **kwargs)
