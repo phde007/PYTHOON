@@ -73,6 +73,14 @@ class MonApp(ctk.CTk):
 
         #region briques Base
 
+        # Ajout d'une brique de test contenant une autre brique de test
+        self.brique_test_avec_filles = bsb.BriqueContenanteTest(self.scroll_frame, "Brique avec filles", manager=self.manager)
+        self.manager.register(self.brique_test_avec_filles.interface)
+
+
+
+
+       
         # Ajout d'une brique purement documentaire qui pointe vers la documentation officielle de la méthode de calcul des bilans aérauliques, 
 
 

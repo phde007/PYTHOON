@@ -22,15 +22,19 @@ from numpy import var
 from grid_manager import GridAccordionManager
 
 
-class BriqueSaisieAvecsFilles:
-    def __init__(self, parent, titre, manager, **kwargs):
+class BriqueSaisieAvecFilles:
+    def __init__(self, parent, titre, manager_parent, **kwargs):
         import Brique as brk
-        # On crée l'interface physique
-        self.interface = brk.Brique(parent, titre, manager, **kwargs)
-        self.persist_vars = {}
-    
-        # Création du Manager (des filles de la BriqueSaisieAvecFilles)    
-        self.manager = GridAccordionManager()
+        
+        # 1. On stocke le manager de l'étage SUPÉRIEUR
+        self.manager_parent = manager_parent
+        
+        # 2. On crée l'interface physique en lui passant le manager parent
+        self.interface = brk.Brique(parent, titre, manager_parent, **kwargs)
+        
+        # 3. On crée un manager INTERNE pour les briques filles
+        # On l'appelle self.manager_filles pour éviter toute confusion        
+        self.manager_filles = GridAccordionManager()
 
     def get_data(self):
         # 1. On récupère automatiquement les champs simples
@@ -45,6 +49,20 @@ class BriqueSaisieAvecsFilles:
         # Si c'est une ZoneElementaire, ce sera 'appareils'
         cle_enfant = getattr(self, "nom_cle_export", "enfants")
         data[cle_enfant] = [enfant.get_data() for enfant in self.manager.structures]
+        
+        return data
+
+
+    def get_data(self):
+        # Récupération des champs locaux via le mapping
+        data = {cle: (var.get() if hasattr(var, 'get') else var) 
+                for cle, var in self.mapping_champs.items()}
+        
+        data["titre"] = self.interface.titre # Utilise le titre de l'interface
+
+        # On demande l'export aux enfants via le manager INTERNE
+        cle_enfant = getattr(self, "nom_cle_export", "enfants")
+        data[cle_enfant] = [enfant.get_data() for enfant in self.manager_filles.structures]
         
         return data
 

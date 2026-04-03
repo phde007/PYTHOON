@@ -10,11 +10,71 @@ utilisées une seule fois dans le programme.  Les briques de saisie plus complex
 """
 
 import customtkinter as ctk
-import BriqueSaisieSansFilles as bs # Import de votre classe de base persistante
+import BriqueSaisieSansFilles as bsf # Import de votre classe de base persistante
+import BriqueSaisieAvecFilles as baf # Import de votre classe de base avec gestion des filles
 from utilitaires_gui import GUITools  
 
 
-class BriqueSaisieBaseChantier(bs.BriqueSaisieSansFilles):
+#region Classes test
+#_________________________________________________________________________________________________________________________
+# Classes de test  pour les briques imbriquées, une brique avec filles contentant une brique sans filles, pour tester la navigation et l'export des données imbriquées
+#_________________________________________________________________________________________________________________________
+class BriqueSansFillesTest(bsf.BriqueSaisieSansFilles):
+    def __init__(self, parent, titre, manager, **kwargs):
+        # On initialise la base avec le titre spécifique
+        super().__init__(parent, titre, manager, **kwargs)
+        
+        # On récupère le panneau de l'interface créée par le parent
+        panneau = self.interface.get_panneau()
+        
+        # 1. Définition des variables à sauver
+        self.persist_vars = {
+            "champ1": ctk.StringVar(value=""),
+            "champ2": ctk.StringVar(value=""),
+        }
+        
+        # 2. Placement des widgets dans le panneau
+        lbl_champ1=ctk.CTkLabel(panneau, text="Champ 1 :")
+        lbl_champ1.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        entry_champ1=ctk.CTkEntry(panneau, textvariable=self.persist_vars["champ1"])
+        entry_champ1.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
+        
+        lbl_champ2=ctk.CTkLabel(panneau, text="Champ 2 :")
+        lbl_champ2.grid(row=1, column=0, padx=10, pady=5, sticky="w")
+        entry_champ2=ctk.CTkEntry(panneau, textvariable=self.persist_vars["champ2"])
+        entry_champ2.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
+
+        # Configuration de l'étalement
+        panneau.grid_columnconfigure(1, weight=1)
+
+
+
+class BriqueContenanteTest(baf.BriqueSaisieAvecFilles):
+    def __init__(self, parent, titre, manager, **kwargs): # Ajoutez 'titre'
+        super().__init__(parent, titre, manager, **kwargs)
+        
+        # Initialisation de self.persist_vars (Attention : baf ne le crée pas par défaut)
+        self.persist_vars = {} 
+        
+        panneau = self.interface.get_panneau()
+        self.persist_vars["description"] = ctk.StringVar(value="")
+            
+        lbl_description = ctk.CTkLabel(panneau, text="Description :")
+        lbl_description.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        entry_description = ctk.CTkEntry(panneau, textvariable=self.persist_vars["description"])
+        entry_description.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
+
+        #ajout d'une brique fille de test (une brique sans filles) dans la brique contenante
+        self.brique_fille_test = BriqueSansFillesTest(panneau, "Sous-Brique Test", manager=self.manager_filles)
+        self.manager_filles.register(self.brique_fille_test.interface)
+
+        # Configuration de l'étalement
+        panneau.grid_columnconfigure(1, weight=1)
+
+
+
+#region Classes des briques niveau base
+class BriqueSaisieBaseChantier(bsf.BriqueSaisieSansFilles):
     def __init__(self, parent, manager, **kwargs):
         # On initialise la base avec le titre spécifique
         super().__init__(parent, "Identification du Chantier", manager, **kwargs)
@@ -60,7 +120,7 @@ class BriqueSaisieBaseChantier(bs.BriqueSaisieSansFilles):
 
 
 
-class BriqueSaisieDocumentationReglementaire(bs.BriqueSaisieSansFilles):
+class BriqueSaisieDocumentationReglementaire(bsf.BriqueSaisieSansFilles):
     def __init__(self, parent, manager, **kwargs):
         # On initialise la base avec le titre spécifique
         super().__init__(parent, "Généralités sur les fonctionnalités de l'assistant, et sur la Documentation Réglementaire", manager, **kwargs)
